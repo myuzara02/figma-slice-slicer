@@ -1,0 +1,297 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import Button from "@/components/Button.astro";
+import { slotContent } from "@/utils/slots.ts";
+
+type Props = HTMLAttributes<"dialog"> & {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Modal ID for triggers, hash links, and `?modal=`. Required. */
+  id?: string;
+  /** Accessible label. */
+  label?: string;
+  /** Modal style. */
+  variant?: "small" | "side-panel" | "full-screen";
+  /** Keep open in design mode. */
+  preview?: boolean;
+};
+
+const {
+  render = true,
+  id,
+  label,
+  variant = "small",
+  preview = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const content = await slotContent(Astro.slots);
+
+if (import.meta.env.DEV && render && content && !id) {
+  console.warn(
+    "[base] <Modal> rendered without an `id`, so nothing could open it and nothing was output.",
+  );
+}
+---
+
+{
+  render && id && content && (
+    <dialog
+      id={id}
+      class:list={[
+        "modal_wrap",
+        variant !== "small" && `is-${variant}`,
+        preview && "is-preview",
+        className,
+      ]}
+      aria-label={label}
+      {...rest}
+    >
+      <div class="modal_content">
+        <Button
+          class="modal_close"
+          variant="close"
+          emphasis="secondary"
+          data-modal-close
+        />
+        <div class="modal_scroll" data-modal-scroll>
+          <div class="modal_body">
+            <Fragment set:html={content} />
+          </div>
+        </div>
+      </div>
+    </dialog>
+  )
+}
+
+<script>
+  for (const modal of document.querySelectorAll<HTMLDialogElement>(
+    ".modal_wrap",
+  )) {
+    const scroll = modal.querySelector<HTMLElement>("[data-modal-scroll]");
+
+    const open = () => {
+      if (modal.open) return;
+      if (scroll) scroll.scrollTop = 0;
+      modal.showModal();
+      modal.dispatchEvent(new CustomEvent("modal-open", { bubbles: true }));
+    };
+
+    modal.addEventListener("close", () =>
+      modal.dispatchEvent(new CustomEvent("modal-close", { bubbles: true })),
+    );
+
+    let fromBackdrop = false;
+
+    modal.addEventListener("mousedown", (event) => {
+      fromBackdrop = event.target === modal;
+    });
+
+    modal.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest("[data-modal-close]")) modal.close();
+      else if (fromBackdrop && target === modal) modal.close();
+      fromBackdrop = false;
+    });
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const trigger = target.closest(
+        `[data-modal-open="${modal.id}"], a[href="#${modal.id}"]`,
+      );
+      if (!trigger) return;
+      event.preventDefault();
+      open();
+    });
+
+    const url = new URL(location.href);
+    if (url.searchParams.get("modal") === modal.id) {
+      open();
+      url.searchParams.delete("modal");
+      history.replaceState(history.state, "", url);
+    }
+  }
+</script>
+
+<style is:global>
+  @layer components {
+    html:has(.modal_wrap[open]) {
+      overflow: hidden;
+    }
+
+    .modal_wrap {
+      --_open-duration: 200ms;
+      --_open-ease: ease;
+      --_leaving: calc(var(--_open-duration) * 0.7);
+      --_from: 0 2rem;
+      --_body: 0 0;
+      --_backdrop: color-mix(
+        in lab,
+        var(--_primitives---colors--neutral-darkest) 60%,
+        transparent
+      );
+      --_close: calc(2.75em + var(--_sizing---space--2) * 2);
+      width: 100%;
+      max-width: none;
+      height: 100%;
+      max-height: none;
+      margin: 0;
+      padding: var(--_sizing---space--4);
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: 0;
+      color: var(--_theme---text);
+      overflow: clip;
+      transition:
+        display var(--_leaving) allow-discrete,
+        overlay var(--_leaving) allow-discrete;
+
+      &[open] {
+        display: flex;
+        transition:
+          display var(--_open-duration) allow-discrete,
+          overlay var(--_open-duration) allow-discrete;
+      }
+
+      .stacki-designer &.is-preview,
+      &.stacki-opened {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background-color: var(--_backdrop);
+      }
+
+      &::backdrop {
+        background-color: var(--_backdrop);
+        opacity: 0;
+        transition: opacity var(--_leaving) var(--_open-ease);
+      }
+
+      &[open]::backdrop {
+        opacity: 1;
+        transition: opacity var(--_open-duration) var(--_open-ease);
+      }
+
+      @starting-style {
+        &[open]::backdrop {
+          opacity: 0;
+        }
+      }
+
+      &.is-side-panel {
+        --_panel: 28rem;
+        --_from: var(--_panel) 0;
+        padding: 0;
+        align-items: stretch;
+        justify-content: end;
+      }
+
+      &.is-full-screen {
+        --_from: 0 0;
+        --_body: 0 2rem;
+        padding: 0;
+        align-items: stretch;
+      }
+    }
+
+    .modal_content {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 34rem;
+      max-height: 100%;
+      background-color: var(--_theme---background);
+      border-radius: var(--_sizing---radius--1);
+      overflow: hidden;
+      opacity: 0;
+      translate: var(--_from);
+      transition:
+        opacity var(--_leaving) var(--_open-ease),
+        translate var(--_leaving) var(--_open-ease);
+
+      .modal_wrap.is-side-panel & {
+        max-width: var(--_panel);
+        max-height: none;
+        border-radius: 0;
+      }
+
+      .modal_wrap.is-full-screen & {
+        max-width: none;
+        max-height: none;
+        border-radius: 0;
+      }
+
+      .modal_wrap:is([open], .stacki-opened) &,
+      .stacki-designer .modal_wrap.is-preview & {
+        opacity: 1;
+        translate: 0 0;
+        transition:
+          opacity var(--_open-duration) var(--_open-ease),
+          translate var(--_open-duration) var(--_open-ease);
+      }
+
+      @starting-style {
+        .modal_wrap[open] & {
+          opacity: 0;
+          translate: var(--_from);
+        }
+      }
+    }
+
+    .modal_close {
+      position: absolute;
+      top: var(--_sizing---space--2);
+      inset-inline-end: var(--_sizing---space--2);
+      z-index: 1;
+    }
+
+    .modal_scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+
+      .modal_wrap.is-full-screen & {
+        height: 100%;
+      }
+    }
+
+    .modal_body {
+      padding: var(--_close) var(--_sizing---space--3) var(--_sizing---space--7-5);
+      translate: var(--_body);
+      transition: translate var(--_leaving) var(--_open-ease);
+
+      & > :first-child {
+        margin-top: 0;
+      }
+
+      & > :last-child {
+        margin-bottom: 0;
+      }
+
+      .modal_wrap.is-full-screen & {
+        min-height: 100%;
+        display: grid;
+        align-content: center;
+      }
+
+      .modal_wrap:is([open], .stacki-opened) &,
+      .stacki-designer .modal_wrap.is-preview & {
+        translate: 0 0;
+        transition: translate var(--_open-duration) var(--_open-ease);
+      }
+
+      @starting-style {
+        .modal_wrap[open] & {
+          translate: var(--_body);
+        }
+      }
+    }
+  }
+</style>

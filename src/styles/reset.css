@@ -1,0 +1,83 @@
+/*
+ * Reset (base layer). Stands in for the Webflow normalize.css + webflow.css the Relume export
+ * leaned on and the cleaner did not carry (ADR 0010). Relume patterns override it.
+ */
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+button {
+  background-color: transparent;
+  color: inherit;
+  text-align: inherit;
+  padding: 0;
+  border: 0;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+:target {
+  scroll-margin-block: 2rem;
+}
+
+:focus-visible {
+  outline: 0.125rem solid var(--_theme---text);
+  outline-offset: 0.1827rem;
+}
+
+::selection {
+  background-color: var(--_theme---selection--background);
+  color: var(--_theme---selection--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

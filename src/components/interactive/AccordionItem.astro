@@ -1,0 +1,118 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import Heading from "@/components/typography/Heading.astro";
+import Icon from "@/components/media/Icon.astro";
+import arrow from "@/assets/icons/arrow.svg";
+import { slotContent } from "@/utils/slots.ts";
+
+type Props = HTMLAttributes<"details"> & {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Item heading. */
+  heading?: string;
+  /** Heading level. */
+  headingTag?: "h2" | "h3" | "h4" | "h5" | "h6";
+  /** Open on load. */
+  open?: boolean;
+};
+
+const {
+  render = true,
+  heading,
+  headingTag = "h3",
+  open = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const content = await slotContent(Astro.slots);
+---
+
+{
+  render && heading && content && (
+    <details
+      class:list={["accordion_item", className]}
+      open={open}
+      data-accordion-group
+      {...rest}
+    >
+      <summary class="accordion_toggle">
+        <Heading tag={headingTag} variant="h5" class="accordion_title">
+          {heading}
+        </Heading>
+        <Icon class="accordion_icon" src={arrow} variant="xs" />
+      </summary>
+
+      <div class="accordion_body">
+        <Fragment set:html={content} />
+      </div>
+    </details>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .accordion_item {
+      interpolate-size: allow-keywords;
+      border-bottom: 0.0625rem solid var(--_theme---border);
+      transition: border-color 200ms ease;
+      @media (hover: hover) {
+        &:hover {
+          border-bottom-color: currentcolor;
+        }
+      }
+    }
+
+    .accordion_toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--_sizing---space--1-5);
+      padding-block: var(--_sizing---space--2);
+      list-style: none;
+      cursor: pointer;
+      &::-webkit-details-marker {
+        display: none;
+      }
+    }
+
+    .accordion_title {
+      margin-block: 0;
+    }
+
+    .accordion_icon {
+      rotate: 90deg;
+      transition: rotate 200ms ease;
+    }
+
+    .accordion_item:is([open], .stacki-opened) .accordion_icon,
+    .stacki-designer .accordion_wrap.is-preview .accordion_icon {
+      rotate: -90deg;
+    }
+
+    .accordion_item::details-content {
+      block-size: 0;
+      overflow: hidden;
+      content-visibility: hidden;
+      transition:
+        block-size 200ms ease,
+        content-visibility 200ms ease allow-discrete;
+    }
+
+    .accordion_item:is([open], .stacki-opened)::details-content,
+    .stacki-designer .accordion_wrap.is-preview .accordion_item::details-content {
+      block-size: auto;
+      content-visibility: visible;
+    }
+
+    .accordion_body {
+      padding-bottom: var(--_sizing---space--2);
+      & > :first-child {
+        margin-top: 0;
+      }
+      & > :last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+</style>

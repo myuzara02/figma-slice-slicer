@@ -1,0 +1,226 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { slug } from "@/utils/slug.ts";
+
+interface Props extends Omit<HTMLAttributes<"input">, "type" | "value"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Field label. */
+  label?: string;
+  /** Initial value. Defaults to the midpoint.
+   *
+   * @min 0
+   * @max 100
+   * @int */
+  value?: number;
+  /** Minimum value. Defaults to `0`.
+   *
+   * @int */
+  min?: number;
+  /** Maximum value. Defaults to `100`.
+   *
+   * @int */
+  max?: number;
+  /** Value interval. Defaults to `1`.
+   *
+   * @min 1
+   * @int */
+  step?: number;
+  /** Unit shown after the value. */
+  unit?: string;
+  /** Submitted name. Defaults to the label slug. */
+  name?: string;
+  /** Require the field and mark its label. */
+  required?: boolean;
+}
+
+const {
+  render = true,
+  label,
+  value,
+  min = 0,
+  max = 100,
+  step = 1,
+  unit,
+  name,
+  required = false,
+  id,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const start = value ?? Math.round((min + max) / 2);
+const progress = max === min ? 0 : (start - min) / (max - min);
+const fieldId = id ?? `range-${label ? slug(label) : "field"}`;
+---
+
+{
+  render && label && (
+    <div
+      class:list={["form_label_wrap", "form_range_wrap", className]}
+      style={`--_progress: ${progress};`}
+    >
+      <label class="form_main_label_text text-size-regular" for={fieldId}>
+        <span>{label}</span>
+        {required && (
+          <span class="text-style-muted" aria-hidden="true">
+            *
+          </span>
+        )}
+      </label>
+
+      <span class="form_range_control">
+        <input
+          class="form_range_input"
+          type="range"
+          id={fieldId}
+          name={name ?? slug(label)}
+          min={min}
+          max={max}
+          step={step}
+          value={start}
+          required={required || undefined}
+          {...rest}
+        />
+        <span class="form_range_track" aria-hidden="true" />
+        <span class="form_range_fill" aria-hidden="true" />
+        <span class="form_range_handle" aria-hidden="true" />
+      </span>
+
+      <output class="form_range_output text-size-small" for={fieldId}>
+        <span data-range-value>{start}</span>
+        {unit && <span>{unit}</span>}
+      </output>
+    </div>
+  )
+}
+
+<script>
+  for (const range of document.querySelectorAll<HTMLElement>(
+    ".form_range_wrap",
+  )) {
+    const input = range.querySelector<HTMLInputElement>(".form_range_input");
+    const shown = range.querySelector<HTMLElement>("[data-range-value]");
+    if (!input) continue;
+
+    const update = () => {
+      const min = Number(input.min || 0);
+      const max = Number(input.max || 100);
+      const at = Number(input.value);
+      range.style.setProperty(
+        "--_progress",
+        String(max === min ? 0 : (at - min) / (max - min)),
+      );
+      if (shown) shown.textContent = input.value;
+    };
+
+    input.addEventListener("input", update);
+    update();
+    range.classList.add("is-drawn");
+  }
+</script>
+
+<style is:global>
+  @layer components {
+    .form_range_wrap {
+      --_handle: 1.75rem;
+      --_handle-face: currentColor;
+      --_rail: 0.25rem;
+    }
+
+    .form_range_wrap.is-drawn {
+      --_handle-face: transparent;
+    }
+
+    .form_range_wrap:not(.is-drawn) :is(.form_range_fill, .form_range_handle) {
+      display: none;
+    }
+
+    .form_range_control {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: var(--_handle);
+    }
+
+    .form_range_input {
+      appearance: none;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: none;
+      cursor: grab;
+      &:active {
+        cursor: grabbing;
+      }
+      &::-webkit-slider-thumb {
+        appearance: none;
+        width: var(--_handle);
+        height: var(--_handle);
+        border-radius: var(--_sizing---radius--full);
+        background: var(--_handle-face);
+      }
+      &::-moz-range-thumb {
+        width: var(--_handle);
+        height: var(--_handle);
+        border: 0;
+        border-radius: var(--_sizing---radius--full);
+        background: var(--_handle-face);
+      }
+      &:focus-visible ~ .form_range_handle {
+        outline: 0.125rem solid var(--_theme---text);
+        outline-offset: 0.1827rem;
+      }
+    }
+
+    .form_range_track,
+    .form_range_fill {
+      position: absolute;
+      inset-inline-start: 0;
+      height: var(--_rail);
+      border-radius: var(--_sizing---radius--full);
+      pointer-events: none;
+    }
+
+    .form_range_track {
+      inset-inline-end: 0;
+      background-color: var(--_theme---border);
+    }
+
+    .form_range_fill {
+      width: calc(
+        var(--_progress, 0) * (100% - var(--_handle)) + var(--_handle) / 2
+      );
+      background-color: var(--_theme---text);
+    }
+
+    .form_range_handle {
+      position: absolute;
+      inset-inline-start: calc(
+        var(--_progress, 0) * (100% - var(--_handle)) + var(--_handle) / 2
+      );
+      translate: -50% 0;
+      width: var(--_handle);
+      height: var(--_handle);
+      border: 0.125rem solid var(--_theme---text);
+      border-radius: var(--_sizing---radius--full);
+      background-color: var(--_theme---background);
+      pointer-events: none;
+    }
+
+    .form_range_output {
+      display: flex;
+      align-self: start;
+      margin-inline-start: calc(
+        var(--_progress, 0) * (100% - var(--_handle)) + var(--_handle) / 2
+      );
+      translate: -50% 0;
+      padding: var(--_sizing---space--0-5) var(--_sizing---space--1);
+      background-color: var(--_theme---background-2);
+      border-radius: var(--_sizing---radius--0-5);
+      white-space: nowrap;
+    }
+  }
+</style>

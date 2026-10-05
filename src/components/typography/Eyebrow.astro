@@ -1,0 +1,61 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { slotContent } from "@/utils/slots.ts";
+
+type Props = HTMLAttributes<"div"> & {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** HTML element. */
+  tag?: "span" | "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  /** Eyebrow style. */
+  variant?: "default" | "tag";
+};
+
+const {
+  render = true,
+  tag: Tag = "p",
+  variant = "default",
+  class: className,
+  ...rest
+} = Astro.props;
+
+const content = await slotContent(Astro.slots);
+---
+
+{
+  render && content && (
+    <div
+      class:list={["eyebrow_wrap", variant === "tag" && "tag", className]}
+      {...rest}
+    >
+      {variant === "default" && (
+        <span class="eyebrow_marker" aria-hidden="true" />
+      )}
+      <Tag
+        class:list={[
+          variant === "tag" ? "text-size-small" : "text-style-tagline",
+        ]}
+      >
+        <Fragment set:html={content} />
+      </Tag>
+    </div>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .eyebrow_wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: var(--_alignment, start);
+      gap: var(--_sizing---space--0-75);
+
+      .eyebrow_marker {
+        flex: none;
+        width: 0.094rem;
+        height: 0.75rem;
+        background-color: currentcolor;
+      }
+    }
+  }
+</style>

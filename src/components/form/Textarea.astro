@@ -1,0 +1,89 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { slug } from "@/utils/slug.ts";
+
+interface Props extends Omit<HTMLAttributes<"textarea">, "rows"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Field label. */
+  label?: string;
+  /** Initial value. */
+  value?: string;
+  /** Submitted name. Defaults to the label slug. */
+  name?: string;
+  /** Empty-field hint. */
+  placeholder?: string;
+  /** Minimum visible lines. Defaults to `3`.
+   *
+   * @min 1
+   * @int */
+  minLines?: number;
+  /** Maximum visible lines. Defaults to `12`.
+   *
+   * @min 1
+   * @int */
+  maxLines?: number;
+  /** Require the field and mark its label. */
+  required?: boolean;
+}
+
+const {
+  render = true,
+  label,
+  value,
+  name,
+  placeholder,
+  minLines = 3,
+  maxLines = 12,
+  required = false,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+{
+  render && label && (
+    <label
+      class:list={["form_label_wrap", className]}
+      style={`--_min-lines: ${minLines}; --_max-lines: ${maxLines};`}
+    >
+      <span class="form_main_label_text text-size-regular">
+        <span>{label}</span>
+        {required && (
+          <span class="text-style-muted" aria-hidden="true">
+            *
+          </span>
+        )}
+      </span>
+      <textarea
+        class="form_main_field is-textarea form_textarea_field text-size-regular"
+        name={name ?? slug(label)}
+        placeholder={placeholder}
+        required={required || undefined}
+        rows={minLines}
+        {...rest}
+      >
+        {value}
+      </textarea>
+    </label>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .form_textarea_field {
+      --_field-pad-block: var(--_sizing---space--0-5);
+
+      field-sizing: content;
+      padding-block: var(--_field-pad-block);
+      min-height: calc(
+        var(--_min-lines, 3) * 1lh + var(--_field-pad-block) * 2 + 0.0625rem * 2
+      );
+      max-height: calc(
+        var(--_max-lines, 12) * 1lh + var(--_field-pad-block) * 2 + 0.0625rem *
+          2
+      );
+      resize: vertical;
+    }
+  }
+</style>

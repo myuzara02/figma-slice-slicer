@@ -1,0 +1,44 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { slotContent } from "@/utils/slots.ts";
+import { typeStyleClass, type TypeStyle } from "@/utils/type-style.ts";
+
+interface Props extends HTMLAttributes<"div"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Heading level. */
+  tag?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  /** Type style. */
+  variant?: TypeStyle;
+  /**
+   * Maximum line length in characters.
+   *
+   * @min 1
+   * @int
+   */
+  maxWidth?: number;
+}
+
+const {
+  render = true,
+  tag: Tag = "h2",
+  variant = Tag,
+  maxWidth,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const content = await slotContent(Astro.slots);
+---
+
+{
+  render && content && (
+    <Tag
+      class:list={[typeStyleClass(variant), className]}
+      style={maxWidth ? `max-width: ${maxWidth}ch;` : undefined}
+      {...rest}
+    >
+      <Fragment set:html={content} />
+    </Tag>
+  )
+}

@@ -1,0 +1,49 @@
+---
+import type { HTMLAttributes, SvgComponent } from "astro/types";
+
+interface Props extends HTMLAttributes<"svg"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Imported SVG. Omit to render nothing. */
+  src?: SvgComponent;
+  /** Icon size. */
+  variant?:
+    | "2xs"
+    | "xs"
+    | "sm"
+    | "m"
+    | "l"
+    | "xl"
+    | "2xl"
+    | "3xl"
+    | "4xl"
+    | "full-width";
+}
+
+const {
+  render = true,
+  src: Svg,
+  variant = "m",
+  class: className,
+  ...rest
+} = Astro.props;
+
+const labelled = Boolean(rest["aria-label"] ?? rest["aria-labelledby"]);
+
+if (import.meta.env.DEV && render && !Svg) {
+  console.warn("[base] <Icon> rendered without a `src`; nothing was output.");
+}
+---
+
+{
+  render && Svg && (
+    <Svg
+      class:list={[
+        variant === "full-width" ? "u-svg" : `u-icon-${variant}`,
+        className,
+      ]}
+      aria-hidden={labelled ? undefined : "true"}
+      {...rest}
+    />
+  )
+}

@@ -1,0 +1,124 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type VideoRatio = "widescreen" | "landscape" | "square" | "portrait";
+
+type Head = Omit<
+  HTMLAttributes<"video">,
+  "src" | "poster" | "loop" | "autoplay" | "muted"
+> & {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Video URL. Omit to render nothing. */
+  src?: string;
+  /** Poster image URL. */
+  poster?: string;
+};
+
+type Tail = {
+  /** Restart after playback. */
+  loop?: boolean;
+  /** Start automatically. Requires `muted`. */
+  autoplay?: boolean;
+  /** Mute audio. */
+  muted?: boolean;
+  /** Fit without cropping and remove the skeleton tint. */
+  transparent?: boolean;
+};
+
+type Props = Head &
+  (
+    | {
+        /** Aspect ratio. */
+        variant?: VideoRatio;
+        ratio?: never;
+      }
+    | {
+        variant: "custom";
+        /** CSS `aspect-ratio` value. */
+        ratio?: string;
+      }
+    | {
+        variant: "auto";
+        ratio?: never;
+      }
+  ) &
+  Tail;
+
+type AllProps = Head &
+  Tail & {
+    variant?: VideoRatio | "custom" | "auto";
+    ratio?: string;
+  };
+
+const {
+  render = true,
+  src,
+  poster,
+  variant = "widescreen",
+  ratio,
+  loop = true,
+  autoplay = true,
+  muted = true,
+  transparent = false,
+  class: className,
+  ...rest
+} = Astro.props as AllProps;
+
+if (import.meta.env.DEV && render) {
+  if (!src) {
+    console.warn(
+      "[base] <Video> rendered without a `src`; nothing was output.",
+    );
+  }
+  if (autoplay && !muted) {
+    console.warn(
+      "[base] <Video autoplay> without `muted` is blocked by every major browser. Set muted, or drop autoplay and let the viewer start it.",
+    );
+  }
+  if (variant === "custom" && !ratio) {
+    console.warn(
+      '[base] <Video variant="custom"> has no `ratio`, so no aspect ratio is applied. Set one, or pick a preset variant.',
+    );
+  }
+}
+
+const isCustom = variant === "custom";
+---
+
+{
+  render && src && (
+    <video
+      src={src}
+      poster={poster}
+      class:list={[
+        "video_wrap",
+        !isCustom && variant !== "auto" && `aspect-ratio-${variant}`,
+        transparent && "is-transparent",
+        className,
+      ]}
+      style={isCustom && ratio ? `aspect-ratio: ${ratio};` : undefined}
+      loop={loop}
+      autoplay={autoplay}
+      muted={muted}
+      playsinline
+      {...rest}
+    />
+  )
+}
+
+<style is:global>
+  @layer components {
+    .video_wrap {
+      background-color: color-mix(in lab, currentcolor 10%, transparent);
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+
+      &.is-transparent {
+        background-color: transparent;
+        object-fit: contain;
+      }
+    }
+  }
+</style>

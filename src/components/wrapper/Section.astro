@@ -1,0 +1,157 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { slotContent } from "@/utils/slots.ts";
+
+type SectionGap =
+  | "none"
+  | "0-125"
+  | "0-25"
+  | "0-5"
+  | "0-75"
+  | "1"
+  | "1-25"
+  | "1-5"
+  | "1-75"
+  | "2"
+  | "2-5"
+  | "3"
+  | "3-5"
+  | "4"
+  | "4-5"
+  | "5"
+  | "5-5"
+  | "6"
+  | "6-5"
+  | "7"
+  | "7-5";
+
+interface Props extends HTMLAttributes<"section"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Color theme of element and its children. */
+  theme?: "inherit" | "light" | "dark" | "brand";
+  /** Top and bottom padding. */
+  padding?: "none" | "small" | "medium" | "large";
+  /** Child gap. */
+  gap?: SectionGap;
+  /** Content alignment. */
+  align?: "start" | "center" | "end";
+  /** Container width. */
+  container?: "small" | "medium" | "large";
+  /** Fill the viewport height. */
+  fullHeight?: boolean;
+  /** Inner container classes. */
+  containerClass?: string;
+  /** Inner container attributes. */
+  containerAttrs?: HTMLAttributes<"div">;
+}
+
+const {
+  render = true,
+  theme = "inherit",
+  padding = "medium",
+  gap = "4",
+  align,
+  container = "large",
+  fullHeight = false,
+  containerClass,
+  containerAttrs = {},
+  class: className,
+  ...rest
+} = Astro.props;
+
+const { class: containerAttrsClass, ...containerRest } = containerAttrs;
+
+const content = await slotContent(Astro.slots);
+const background = await slotContent(Astro.slots, "background");
+---
+
+{
+  render && (content || background) && (
+    <section
+      class:list={[
+        "section_wrap",
+        theme !== "inherit" && `u-theme-${theme}`,
+        fullHeight && "is-full-height",
+        align && `is-align-${align}`,
+        className,
+      ]}
+      {...rest}
+    >
+      <Fragment set:html={background} />
+      {content && (
+        <div class="padding-global">
+          <div
+            class:list={[
+              `container-${container}`,
+              containerClass,
+              containerAttrsClass,
+            ]}
+            {...containerRest}
+          >
+            <div
+              class:list={[
+                "section_layout",
+                padding !== "none" && `padding-section-${padding}`,
+              ]}
+              style={
+                gap !== "4" ? `--_gap: var(--_sizing---space--${gap});` : undefined
+              }
+            >
+              <Fragment set:html={content} />
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .section_wrap {
+      position: relative;
+
+      & > :where(:not(.padding-global)) {
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      & > .padding-global {
+        position: relative;
+        & > * {
+          container-type: inline-size;
+        }
+      }
+
+      .section_layout {
+        display: flex;
+        flex-direction: column;
+        align-items: var(--_alignment, stretch);
+        gap: var(--_gap, var(--_sizing---space--4));
+      }
+
+      &.is-align-start {
+        --_alignment: start;
+        text-align: start;
+      }
+      &.is-align-center {
+        --_alignment: center;
+        text-align: center;
+      }
+      &.is-align-end {
+        --_alignment: end;
+        text-align: end;
+      }
+
+      &.is-full-height {
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+    }
+  }
+</style>

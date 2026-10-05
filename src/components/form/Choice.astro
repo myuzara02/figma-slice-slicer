@@ -1,0 +1,150 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import Icon from "@/components/media/Icon.astro";
+import check from "@/assets/icons/check.svg";
+import { slug } from "@/utils/slug.ts";
+
+type Base = {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Control label. */
+  label?: string;
+  /** Submitted value. Defaults to `on`. */
+  value?: string;
+};
+
+type Kind =
+  | {
+      /** Input type. */
+      type?: "checkbox";
+      /** Submitted name. Defaults to the label slug. */
+      name?: string;
+    }
+  | {
+      /** Input type. */
+      type: "radio";
+      /** Shared name for the radio group. */
+      name: string;
+    };
+
+type Settings = {
+  /** Control style. */
+  variant?: "default" | "toggle" | "chip";
+  /** Start selected. */
+  checked?: boolean;
+  /** Require a selection. */
+  required?: boolean;
+};
+
+type Props = Omit<HTMLAttributes<"input">, "type" | "value"> &
+  Base &
+  Kind &
+  Settings;
+
+type AllProps = Omit<HTMLAttributes<"input">, "type" | "value"> &
+  Base & { type?: "checkbox" | "radio"; name?: string } & Settings;
+
+const {
+  render = true,
+  label,
+  value,
+  type = "checkbox",
+  name,
+  variant = "default",
+  checked = false,
+  required = false,
+  class: className,
+  ...rest
+} = Astro.props as AllProps;
+---
+
+{
+  render && label && (
+    <label class:list={["form_ui_label", variant === "chip" && "is-pill", className]}>
+      <input
+        class="form_ui_input"
+        type={type}
+        name={name ?? slug(label)}
+        value={value}
+        checked={checked || undefined}
+        required={required || undefined}
+        {...rest}
+      />
+      <span
+        class:list={[
+          "form_ui_visual_wrap",
+          variant === "toggle"
+            ? "is-switch"
+            : variant === "chip"
+              ? "is-pill"
+              : type === "radio" && "is-radio",
+        ]}
+        aria-hidden="true"
+      >
+        {variant === "toggle" ? (
+          <span class="form_ui_visual_inner is-switch" />
+        ) : type === "radio" ? (
+          <span class="form_ui_visual_inner is-radio" />
+        ) : (
+          <Icon class="form_ui_visual_icon" src={check} variant="xs" />
+        )}
+      </span>
+      <span class="text-size-regular">{label}</span>
+    </label>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .form_ui_label {
+      --_state---true: 1;
+      --_state---false: 0;
+      gap: var(--_sizing---space--0-75);
+      width: fit-content;
+      cursor: pointer;
+    }
+
+    .form_ui_label:has(.form_ui_input:checked) {
+      --_state---true: 0;
+      --_state---false: 1;
+    }
+
+    .form_ui_label.is-pill {
+      padding: var(--_sizing---space--0-75) var(--_sizing---space--1-5)
+        var(--_sizing---space--0-75) var(--_sizing---space--0-75);
+    }
+
+    .form_ui_label,
+    .form_ui_visual_wrap,
+    .form_ui_visual_inner {
+      transition:
+        background-color 200ms ease,
+        border-color 200ms ease,
+        color 200ms ease,
+        transform 200ms ease,
+        opacity 200ms ease;
+    }
+
+    .form_ui_visual_icon {
+      transition: opacity 200ms ease;
+    }
+
+    .form_ui_visual_wrap.is-pill .form_ui_visual_inner.is-radio {
+      background-color: currentcolor;
+    }
+
+    .form_ui_label:has(.form_ui_input:focus-visible) .form_ui_visual_wrap {
+      outline: 0.125rem solid var(--_theme---text);
+      outline-offset: 0.1827rem;
+    }
+
+    .form_ui_label.is-pill:has(.form_ui_input:focus-visible) {
+      outline: 0.125rem solid var(--_theme---text);
+      outline-offset: 0.1827rem;
+
+      & .form_ui_visual_wrap {
+        outline: 0;
+      }
+    }
+  }
+</style>

@@ -1,0 +1,528 @@
+---
+import Layout from "@/layouts/BaseLayout.astro";
+import Section from "@/components/wrapper/Section.astro";
+import ContentWrapper from "@/components/wrapper/ContentWrapper.astro";
+import Grid from "@/components/wrapper/Grid.astro";
+import ButtonWrapper from "@/components/wrapper/ButtonWrapper.astro";
+import Eyebrow from "@/components/typography/Eyebrow.astro";
+import Heading from "@/components/typography/Heading.astro";
+import Paragraph from "@/components/typography/Paragraph.astro";
+import RichText from "@/components/typography/RichText.astro";
+import Button from "@/components/Button.astro";
+import Card from "@/components/item/Card.astro";
+import Img from "@/components/media/Img.astro";
+import Icon from "@/components/media/Icon.astro";
+import Video from "@/components/media/Video.astro";
+import Overlay from "@/components/media/Overlay.astro";
+import Accordion from "@/components/interactive/Accordion.astro";
+import AccordionItem from "@/components/interactive/AccordionItem.astro";
+import Tabs from "@/components/interactive/Tabs.astro";
+import TabLink from "@/components/interactive/TabLink.astro";
+import Dropdown from "@/components/interactive/Dropdown.astro";
+import Slider from "@/components/interactive/Slider.astro";
+import Modal from "@/components/interactive/Modal.astro";
+import Marquee from "@/components/interactive/Marquee.astro";
+import Form from "@/components/form/Form.astro";
+import Fieldset from "@/components/form/Fieldset.astro";
+import Input from "@/components/form/Input.astro";
+import Select from "@/components/form/Select.astro";
+import Choice from "@/components/form/Choice.astro";
+import Range from "@/components/form/Range.astro";
+import Textarea from "@/components/form/Textarea.astro";
+import FormattedDate from "@/components/utility/FormattedDate.astro";
+import placeholder from "@/assets/style-guide/placeholder.png";
+import logo from "@/assets/style-guide/logo.svg";
+import arrow from "@/assets/icons/arrow.svg";
+import play from "@/assets/icons/play.svg";
+import close from "@/assets/icons/close.svg";
+import check from "@/assets/icons/check.svg";
+
+const headings = ["h1", "h2", "h3", "h4", "h5", "h6"] as const;
+const textSizes = [
+  "large",
+  "medium",
+  "regular",
+  "small",
+  "tiny",
+  "overline-medium",
+  "overline-small",
+] as const;
+const weights = ["light", "normal", "medium", "semibold", "bold", "xbold"];
+const textStyles = ["allcaps", "italic", "strikethrough", "muted", "nowrap", "link"];
+const themes = ["light", "dark", "brand"] as const;
+const emphases = ["primary", "secondary", "tertiary", "quaternary"] as const;
+const paddings = ["none", "small", "medium", "large"] as const;
+const containers = ["small", "medium", "large"] as const;
+const iconSizes = ["2xs", "xs", "sm", "m", "l", "xl", "2xl", "3xl", "4xl"] as const;
+const ratios = ["widescreen", "landscape", "square", "portrait"] as const;
+const spacers = ["tiny", "xxsmall", "xsmall", "small", "medium", "large", "xlarge", "xxlarge", "huge", "xhuge", "xxhuge"];
+const maxWidths = ["xxsmall", "xsmall", "small", "medium", "large", "xlarge", "xxlarge"];
+const inputs = ["text", "first-name", "last-name", "email", "phone", "date", "zip-code", "number", "search", "password", "url"] as const;
+const services = ["Strategy", "Design", "Development", "Research", "Support"];
+
+const heading = "We build things that help people work smarter";
+const text = "We build things that help people work smarter, move faster, and grow further.";
+const lorem =
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+const video = "https://timothyricks.us.getafile.online/background-video";
+---
+
+<Layout title="Style Guide" description="Every Relume class and Base Component variant.">
+  <!-- typography -->
+  <Section data-section="typography">
+    <ContentWrapper>
+      <Eyebrow>Typography</Eyebrow>
+      <Heading tag="h1">Style Guide</Heading>
+      {headings.map((h) => <Heading tag={h}>heading-style-{h}</Heading>)}
+      {textSizes.map((s) => <Paragraph variant={s}>text-size-{s}</Paragraph>)}
+      <Heading tag="h2" variant="large">Heading in text-size-large</Heading>
+      <Paragraph variant="h4">Paragraph in heading-style-h4</Paragraph>
+      <Paragraph maxWidth={36}>{lorem}</Paragraph>
+      <Eyebrow variant="tag">Eyebrow · tag</Eyebrow>
+      <ButtonWrapper marginTop="0">
+        {weights.map((w) => <Paragraph tag="span" class={`text-weight-${w}`}>text-weight-{w}</Paragraph>)}
+      </ButtonWrapper>
+      <ButtonWrapper marginTop="0">
+        {textStyles.map((s) => <Paragraph tag="span" class={`text-style-${s}`}>text-style-{s}</Paragraph>)}
+      </ButtonWrapper>
+      <Heading tag="h3" class="u-heading-accent">Heading with <strong>accent</strong></Heading>
+    </ContentWrapper>
+  </Section>
+
+  <!-- rich text -->
+  <Section padding="small" data-section="rich-text">
+    <ContentWrapper>
+      <Eyebrow>RichText</Eyebrow>
+      <RichText maxWidth={60}>
+        <h2>A heading the editor wrote</h2>
+        <p>Rich text takes whatever a CMS hands it and gives every element the same rhythm, without a class on any of them.</p>
+        <h3>A second level</h3>
+        <ul>
+          <li>An item in a list</li>
+          <li>Another item, longer, so it wraps onto a second line and the spacing between items can be read</li>
+        </ul>
+        <blockquote>A pull quote, styled from the parent.</blockquote>
+        <p>A closing paragraph with <a href="#typography">a link</a> inside it.</p>
+      </RichText>
+      <RichText variant="small"><p>RichText in text-size-small.</p></RichText>
+    </ContentWrapper>
+  </Section>
+
+  <!-- themes and buttons -->
+  {
+    themes.map((theme) => (
+      <Section theme={theme} padding="small" data-section={`theme ${theme}`}>
+        <ContentWrapper>
+          <Eyebrow>Theme · {theme}</Eyebrow>
+          <Heading tag="h2" variant="h3">u-theme-{theme}</Heading>
+          <Paragraph>Paragraph in the theme's text color.</Paragraph>
+          <Paragraph class="text-style-muted">text-style-muted</Paragraph>
+          <Card heading="Card in the theme" text="background-2, heading and text roles." />
+          <ButtonWrapper>
+            {emphases.map((emphasis) => (
+              <Button element="link" href="#typography" emphasis={emphasis}>
+                {emphasis}
+              </Button>
+            ))}
+            <Button variant="link" element="link" href="#typography">link</Button>
+            <Button disabled>disabled</Button>
+          </ButtonWrapper>
+          <ButtonWrapper marginTop="small">
+            {emphases.map((emphasis) => (
+              <Fragment>
+                <Button variant="arrow" direction="back" emphasis={emphasis} />
+                <Button variant="arrow" emphasis={emphasis} />
+                <Button variant="play" emphasis={emphasis} />
+                <Button variant="play" pressed emphasis={emphasis} />
+                <Button variant="close" emphasis={emphasis} />
+              </Fragment>
+            ))}
+          </ButtonWrapper>
+        </ContentWrapper>
+      </Section>
+    ))
+  }
+
+  <!-- section padding and containers -->
+  {
+    paddings.map((padding) => (
+      <Section padding={padding} theme="dark" data-section={`padding ${padding}`}>
+        <Paragraph variant="small">Section padding="{padding}"</Paragraph>
+      </Section>
+    ))
+  }
+  {
+    containers.map((container) => (
+      <Section padding="small" container={container} data-section={`container ${container}`}>
+        <Card text={`Section container="${container}"`} />
+      </Section>
+    ))
+  }
+  {
+    (["start", "center", "end"] as const).map((align) => (
+      <Section padding="small" gap="1" align={align} data-section={`align ${align}`}>
+        <Eyebrow>Section align="{align}" gap="1"</Eyebrow>
+        <Paragraph maxWidth={36}>{text}</Paragraph>
+        <ButtonWrapper marginTop="0">
+          <Button>Button Text</Button>
+        </ButtonWrapper>
+      </Section>
+    ))
+  }
+  <Section fullHeight theme="dark" data-section="full height">
+    <Img src={placeholder} slot="background" />
+    <Overlay slot="background" />
+    <ContentWrapper centered>
+      <Eyebrow>Section · fullHeight · background</Eyebrow>
+      <Heading tag="h2" variant="h3" maxWidth={17}>{heading}</Heading>
+      <Paragraph maxWidth={36}>{text}</Paragraph>
+      <ButtonWrapper>
+        <Button element="link" href="#typography">Button Text</Button>
+        <Dropdown label="Dropdown">
+          <Paragraph>Some text</Paragraph>
+        </Dropdown>
+      </ButtonWrapper>
+    </ContentWrapper>
+  </Section>
+
+  <!-- content wrapper -->
+  <Section padding="small" data-section="stack">
+    <ContentWrapper>
+      <Eyebrow>ContentWrapper · stack</Eyebrow>
+      <Heading tag="h2" variant="h3" maxWidth={17}>{heading}</Heading>
+      <Paragraph maxWidth={36}>{text}</Paragraph>
+      <ButtonWrapper>
+        <Button element="link" href="#typography">Button Text</Button>
+        <Dropdown label="Dropdown">
+          <Paragraph>Some text</Paragraph>
+        </Dropdown>
+      </ButtonWrapper>
+      <Img src={placeholder} slot="column2" />
+    </ContentWrapper>
+  </Section>
+  <Section padding="small" data-section="stack centered">
+    <ContentWrapper centered>
+      <Eyebrow>ContentWrapper · stack · centered</Eyebrow>
+      <Heading tag="h2" variant="h3" maxWidth={17}>{heading}</Heading>
+      <Paragraph maxWidth={36}>{text}</Paragraph>
+      <ButtonWrapper>
+        <Button element="link" href="#typography">Button Text</Button>
+        <Button emphasis="secondary">Button Text</Button>
+      </ButtonWrapper>
+    </ContentWrapper>
+  </Section>
+  <Section padding="small" data-section="auto-width">
+    <ContentWrapper variant="auto-width">
+      <Eyebrow>ContentWrapper · auto-width</Eyebrow>
+      <Heading tag="h2" variant="h3" maxWidth={17}>{heading}</Heading>
+      <Paragraph maxWidth={28} slot="column2">{text}</Paragraph>
+      <ButtonWrapper slot="column2" marginTop="small">
+        <Button element="link" href="#typography">Button Text</Button>
+      </ButtonWrapper>
+    </ContentWrapper>
+  </Section>
+  {
+    (["columns", "breakout", "contain"] as const).flatMap((variant) =>
+      [false, true].map((reverse) => (
+        <Section padding="small" data-section={`${variant}${reverse ? " reverse" : ""}`}>
+          <ContentWrapper variant={variant} reverse={reverse}>
+            <Eyebrow>
+              ContentWrapper · {variant}
+              {reverse ? " · reverse" : ""}
+            </Eyebrow>
+            <Heading tag="h2" variant="h3" maxWidth={17}>{heading}</Heading>
+            <Paragraph maxWidth={36}>{text}</Paragraph>
+            <ButtonWrapper>
+              <Button element="link" href="#typography">Button Text</Button>
+            </ButtonWrapper>
+            <Img slot="column2" src={placeholder} />
+          </ContentWrapper>
+        </Section>
+      )),
+    )
+  }
+  {
+    (["sticky-content", "sticky-visual"] as const).map((variant) => (
+      <Section padding="small" data-section={variant}>
+        <ContentWrapper variant={variant}>
+          <Eyebrow>ContentWrapper · {variant}</Eyebrow>
+          <Heading tag="h2" variant="h3" maxWidth={17}>{heading}</Heading>
+          <Paragraph>{Array(8).fill(lorem).join(" ")}</Paragraph>
+          <Img slot="column2" src={placeholder} />
+        </ContentWrapper>
+      </Section>
+    ))
+  }
+  <Section padding="small" data-section="card">
+    <ContentWrapper variant="card" mediaOpacity={50}>
+      <Eyebrow variant="tag">ContentWrapper · card</Eyebrow>
+      <Heading tag="h2" variant="h3" maxWidth={17}>{heading}</Heading>
+      <Paragraph maxWidth={36}>{text}</Paragraph>
+      <ButtonWrapper>
+        <Button element="link" href="#typography">Button Text</Button>
+      </ButtonWrapper>
+      <Img slot="column2" src={placeholder} />
+    </ContentWrapper>
+  </Section>
+
+  <!-- grid and cards -->
+  <Section padding="small" data-section="grid">
+    <ContentWrapper>
+      <Eyebrow>Grid · columns · Card</Eyebrow>
+    </ContentWrapper>
+    <Grid tablet={2} desktop={3}>
+      <Card eyebrow="default" heading="Heading" text={text} buttonHref="#typography" buttonLabel="Button Text" />
+      <Card variant="cover" image={placeholder} eyebrow="cover" heading="Heading" text={text} buttonHref="#typography" buttonLabel="Button Text" />
+      <Card variant="stacked" image={placeholder} eyebrow="stacked" heading="Heading" text={text} buttonLabel="Button Text" />
+      {themes.map((theme) => (
+        <Card theme={theme} eyebrow={`theme ${theme}`} heading="Heading" text={text} buttonLabel="Button Text" />
+      ))}
+    </Grid>
+  </Section>
+  {
+    (["autofit", "autofill"] as const).map((variant) => (
+      <Section padding="small" data-section={`grid ${variant}`}>
+        <ContentWrapper>
+          <Eyebrow>Grid · {variant}</Eyebrow>
+        </ContentWrapper>
+        <Grid variant={variant} minColumnWidth={14} maxColumnCount={6}>
+          {services.slice(0, 3).map((s) => (
+            <Card heading={s} text={text} />
+          ))}
+        </Grid>
+      </Section>
+    ))
+  }
+
+  <!-- media -->
+  <Section padding="small" data-section="media">
+    <ContentWrapper>
+      <Eyebrow>Img</Eyebrow>
+    </ContentWrapper>
+    <Grid tablet={2} desktop={4}>
+      <Img src={placeholder} alt="full-width" />
+      <Img src={placeholder} alt="constrained" variant="constrained" width={250} />
+      <Img src={placeholder} alt="densities" variant="densities" width={125} />
+      <Img src={logo} alt="transparent" transparent />
+    </Grid>
+    <ContentWrapper>
+      <Eyebrow>Icon</Eyebrow>
+      <ButtonWrapper marginTop="0">
+        {iconSizes.map((size) => <Icon src={check} variant={size} aria-label={`u-icon-${size}`} />)}
+      </ButtonWrapper>
+      <ButtonWrapper marginTop="0">
+        <Icon src={arrow} />
+        <Icon src={play} />
+        <Icon src={close} />
+      </ButtonWrapper>
+      <Icon src={logo} variant="full-width" class="max-width-xxsmall" />
+    </ContentWrapper>
+    <ContentWrapper>
+      <Eyebrow>Video</Eyebrow>
+    </ContentWrapper>
+    <Grid tablet={3} desktop={6}>
+      {ratios.map((ratio) => (
+        <Video src={video} poster={placeholder.src} variant={ratio} autoplay={false} preload="none" />
+      ))}
+      <Video src={video} poster={placeholder.src} variant="custom" ratio="4 / 5" autoplay={false} preload="none" />
+      <Video src={video} poster={placeholder.src} variant="auto" transparent autoplay={false} preload="none" />
+    </Grid>
+  </Section>
+  {
+    (["solid", "gradient"] as const).flatMap((variant) =>
+      [25, 75].map((strength) => (
+        <Section padding="small" theme="dark" data-section={`overlay ${variant} ${strength}`}>
+          <Img src={placeholder} slot="background" />
+          <Overlay slot="background" variant={variant} strength={strength} />
+          <Eyebrow>
+            Overlay · {variant} · strength {strength}
+          </Eyebrow>
+        </Section>
+      )),
+    )
+  }
+
+  <!-- accordion -->
+  <Section padding="small" data-section="accordion">
+    <ContentWrapper variant="sticky-content">
+      <Eyebrow>Accordion · openFirst</Eyebrow>
+      <Heading tag="h2" variant="h3" maxWidth={17}>{heading}</Heading>
+      <Accordion slot="column2" openFirst>
+        {services.slice(0, 3).map((s) => (
+          <AccordionItem heading={s}>
+            <Paragraph>{lorem}</Paragraph>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    </ContentWrapper>
+    <ContentWrapper variant="columns">
+      <Eyebrow>Accordion · single=false</Eyebrow>
+      <Accordion slot="column2" single={false}>
+        {services.slice(0, 3).map((s, i) => (
+          <AccordionItem heading={s} headingTag="h4" open={i === 1}>
+            <Paragraph>{lorem}</Paragraph>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    </ContentWrapper>
+  </Section>
+
+  <!-- tabs -->
+  {
+    (
+      [
+        { label: "horizontal", props: {} },
+        { label: "side", props: { variant: "side" } },
+        { label: "auto playback", props: { playback: "auto" } },
+      ] as const
+    ).map(({ label, props }) => (
+      <Section padding="small" data-section={`tabs ${label}`}>
+        <ContentWrapper>
+          <Eyebrow>Tabs · {label}</Eyebrow>
+        </ContentWrapper>
+        <Tabs {...props}>
+          <Fragment slot="links">
+            {services.slice(0, 3).map((s) => (
+              <TabLink>{s}</TabLink>
+            ))}
+          </Fragment>
+          {services.slice(0, 3).map((s) => (
+            <ContentWrapper variant="columns">
+              <Heading tag="h3" variant="h4">{s}</Heading>
+              <Paragraph maxWidth={36}>{text}</Paragraph>
+              <Img slot="column2" src={placeholder} />
+            </ContentWrapper>
+          ))}
+        </Tabs>
+      </Section>
+    ))
+  }
+
+  <!-- slider -->
+  {
+    (["bleed", "crop-start", "contained"] as const).map((variant) => (
+      <Section padding="small" data-section={`slider ${variant}`}>
+        <ContentWrapper>
+          <Eyebrow>Slider · {variant}</Eyebrow>
+        </ContentWrapper>
+        <Slider variant={variant} label="Services" tablet={2} desktop={3}>
+          {services.map((s) => (
+            <Card heading={s} text={text} buttonLabel="Button Text" />
+          ))}
+        </Slider>
+      </Section>
+    ))
+  }
+
+  <!-- marquee -->
+  <Section padding="small" data-section="marquee">
+    <ContentWrapper>
+      <Eyebrow>Marquee · forwards · backwards</Eyebrow>
+    </ContentWrapper>
+    {
+      (["forwards", "backwards"] as const).map((direction) => (
+        <Marquee label="What we do" direction={direction}>
+          {services.map((s) => (
+            <Fragment>
+              <Paragraph variant="large">{s}</Paragraph>
+              <Icon src={check} variant="xl" />
+            </Fragment>
+          ))}
+        </Marquee>
+      ))
+    }
+  </Section>
+
+  <!-- modal -->
+  <Section padding="small" data-section="modal">
+    <ContentWrapper centered>
+      <Eyebrow>Modal</Eyebrow>
+      <ButtonWrapper>
+        <Button data-modal-open="modal-small">Open Modal</Button>
+        <Button data-modal-open="modal-side" emphasis="secondary">Open Side Panel</Button>
+        <Button data-modal-open="modal-full" emphasis="secondary">Open Full Screen</Button>
+      </ButtonWrapper>
+    </ContentWrapper>
+  </Section>
+  <Modal id="modal-small" label="Small modal">
+    <ContentWrapper centered>
+      <Heading tag="h2" variant="h4">{heading}</Heading>
+      <Paragraph>{text}</Paragraph>
+    </ContentWrapper>
+  </Modal>
+  <Modal id="modal-side" label="Side panel" variant="side-panel">
+    <ContentWrapper>
+      <Heading tag="h2" variant="h4">{heading}</Heading>
+      <Paragraph>{text}</Paragraph>
+    </ContentWrapper>
+  </Modal>
+  <Modal id="modal-full" label="Full screen" variant="full-screen">
+    <ContentWrapper centered>
+      <Heading tag="h2" variant="h3">{heading}</Heading>
+      <Paragraph>{text}</Paragraph>
+    </ContentWrapper>
+  </Modal>
+
+  <!-- form -->
+  <Section padding="small" data-section="form">
+    <ContentWrapper>
+      <Eyebrow>Form</Eyebrow>
+    </ContentWrapper>
+    <Form name="contact">
+      <Fieldset legend="Inputs" variant="columns">
+        {inputs.map((variant) => (
+          <Input variant={variant} required={variant === "email"} />
+        ))}
+        <Input label="Hidden label" labelHidden placeholder="Hidden label" />
+      </Fieldset>
+      <Fieldset legend="Selects" variant="thirds" legendStyle="label">
+        <Select label="Job Title" options={["Designer", "Developer", "Producer"]} />
+        <Select variant="month" />
+        <Select variant="day" />
+        <Select variant="year" from={1990} />
+        <Select variant="state" labelHidden />
+      </Fieldset>
+      <Fieldset legend="Choices" variant="inline">
+        <Choice label="Checkbox" name="terms" checked />
+        <Choice label="Checkbox" name="updates" />
+        <Choice type="radio" name="color" label="Red" value="red" checked />
+        <Choice type="radio" name="color" label="Blue" value="blue" />
+        <Choice variant="toggle" label="Toggle" name="toggle" checked />
+        <Choice variant="chip" label="Chip" name="chip" checked />
+        <Choice variant="chip" type="radio" name="chip-radio" label="Chip radio" value="a" />
+      </Fieldset>
+      <Fieldset legend="Hidden legend" legendStyle="hidden">
+        <Range label="Range" unit="%" />
+        <Textarea label="Message" placeholder="Your message" required />
+      </Fieldset>
+      <ButtonWrapper marginTop="small">
+        <Button type="submit">Submit</Button>
+      </ButtonWrapper>
+    </Form>
+  </Section>
+
+  <!-- utilities -->
+  <Section padding="small" data-section="utilities">
+    <ContentWrapper>
+      <Eyebrow>FormattedDate</Eyebrow>
+      <Paragraph>
+        <FormattedDate date={new Date("2026-10-05")} />
+      </Paragraph>
+      <Eyebrow>padding-section-*</Eyebrow>
+      {(["small", "medium", "large"] as const).map((s) => (
+        <Card class={`padding-section-${s}`} text={`padding-section-${s}`} />
+      ))}
+      <Eyebrow>spacer-*</Eyebrow>
+      {spacers.map((s) => (
+        <Card class={`spacer-${s}`} text={`spacer-${s}`} />
+      ))}
+      <Eyebrow>max-width-*</Eyebrow>
+      {maxWidths.map((s) => (
+        <Card class={`max-width-${s}`} text={`max-width-${s}`} />
+      ))}
+      <Eyebrow>hide-tablet · hide-mobile-landscape</Eyebrow>
+      <Paragraph class="hide-tablet">hidden ≤991px</Paragraph>
+      <Paragraph class="hide-mobile-landscape">hidden ≤767px</Paragraph>
+    </ContentWrapper>
+  </Section>
+</Layout>

@@ -1,0 +1,169 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { slotContent } from "@/utils/slots.ts";
+
+type Base = HTMLAttributes<"div"> & {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+};
+
+type Props = Base &
+  (
+    | {
+        /** Grid mode. */
+        variant?: "columns";
+        /**
+         * Columns below 48rem. Defaults to `1`.
+         *
+         * @min 1
+         * @max 12
+         * @int
+         */
+        mobile?: number;
+        /**
+         * Columns from 48rem. Inherits `mobile`.
+         *
+         * @min 1
+         * @max 12
+         * @int
+         */
+        tablet?: number;
+        /**
+         * Columns from 62rem. Inherits `tablet`.
+         *
+         * @min 1
+         * @max 12
+         * @int
+         */
+        desktop?: number;
+        maxColumnCount?: never;
+        minColumnWidth?: never;
+      }
+    | {
+        variant: "autofit" | "autofill";
+        /**
+         * Maximum columns. Defaults to `12`.
+         *
+         * @min 1
+         * @max 12
+         * @int
+         */
+        maxColumnCount?: number;
+        /** Minimum column width in rem. Defaults to `12`.
+         *
+         * @min 1 */
+        minColumnWidth?: number;
+        mobile?: never;
+        tablet?: never;
+        desktop?: never;
+      }
+  );
+
+type AllProps = Base & {
+  variant?: "columns" | "autofit" | "autofill";
+  mobile?: number;
+  tablet?: number;
+  desktop?: number;
+  maxColumnCount?: number;
+  minColumnWidth?: number;
+};
+
+const {
+  render = true,
+  variant = "columns",
+  mobile = 1,
+  tablet,
+  desktop,
+  maxColumnCount,
+  minColumnWidth,
+  class: className,
+  ...rest
+} = Astro.props as AllProps;
+
+const content = await slotContent(Astro.slots);
+
+const validMinColumnWidth =
+  minColumnWidth !== undefined &&
+  Number.isFinite(minColumnWidth) &&
+  minColumnWidth > 0;
+
+if (
+  import.meta.env.DEV &&
+  minColumnWidth !== undefined &&
+  !validMinColumnWidth
+) {
+  console.warn(
+    `[base] <Grid minColumnWidth={${minColumnWidth}}> must be greater than 0; the default is used instead.`,
+  );
+}
+
+const columns =
+  (variant !== "columns"
+    ? [
+        maxColumnCount !== undefined && `--_max-cols: ${maxColumnCount}`,
+        validMinColumnWidth && `--_min-col-width: ${minColumnWidth}`,
+      ]
+    : [
+        mobile !== 1 && `--_cols-mobile: ${mobile}`,
+        tablet !== undefined && `--_cols-tablet: ${tablet}`,
+        desktop !== undefined && `--_cols-desktop: ${desktop}`,
+      ]
+  )
+    .filter(Boolean)
+    .join("; ") || undefined;
+---
+
+{
+  render && content && (
+    <div
+      class:list={[
+        "grid_wrap",
+        variant !== "columns" && `is-${variant}`,
+        className,
+      ]}
+      style={columns}
+      {...rest}
+    >
+      <Fragment set:html={content} />
+    </div>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .grid_wrap {
+      --_cols: var(--_cols-mobile);
+      --_cols-mobile: 1;
+      --_cols-tablet: var(--_cols-mobile);
+      --_cols-desktop: var(--_cols-tablet);
+      --_gap-size: var(--_sizing---space--2);
+      width: 100%;
+      display: grid;
+      grid-column-gap: var(--_gap-size);
+      grid-row-gap: var(--_gap-size);
+      grid-template-columns: repeat(var(--_cols), minmax(0, 1fr));
+      @media (width >= 48rem) {
+        --_cols: var(--_cols-tablet);
+      }
+      @media (width >= 62rem) {
+        --_cols: var(--_cols-desktop);
+      }
+      &:is(.is-autofit, .is-autofill) {
+        --_max-cols: 12;
+        --_min-col-width: 12;
+        --_fit: (100% - (var(--_max-cols) - 1) * var(--_gap-size)) /
+          var(--_max-cols);
+        --_track: min(
+          max(calc(var(--_min-col-width) * 1rem), var(--_fit)),
+          100%
+        );
+      }
+      &.is-autofit {
+        grid-template-columns: repeat(auto-fit, minmax(var(--_track), 1fr));
+      }
+      &.is-autofill {
+        grid-template-columns: repeat(auto-fill, minmax(var(--_track), 1fr));
+      }
+    }
+  }
+</style>

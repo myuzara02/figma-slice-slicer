@@ -1,0 +1,60 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { slotContent } from "@/utils/slots.ts";
+
+type WrapperMargin =
+  | "default"
+  | "0"
+  | "tiny"
+  | "xxsmall"
+  | "xsmall"
+  | "small"
+  | "medium"
+  | "large"
+  | "xlarge"
+  | "xxlarge"
+  | "huge"
+  | "xhuge"
+  | "xxhuge";
+
+interface Props extends HTMLAttributes<"div"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Top margin. */
+  marginTop?: WrapperMargin;
+}
+
+const {
+  render = true,
+  marginTop = "default",
+  class: className,
+  ...rest
+} = Astro.props;
+
+const content = await slotContent(Astro.slots);
+---
+
+{
+  render && content && (
+    <div
+      class:list={[
+        "button-group_wrap",
+        "button-group",
+        marginTop !== "default" && ["margin-top", `margin-${marginTop}`],
+        className,
+      ]}
+      {...rest}
+    >
+      <Fragment set:html={content} />
+    </div>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .button-group_wrap {
+      margin-top: var(--_sizing---space--2-5);
+      justify-content: var(--_alignment, start);
+    }
+  }
+</style>

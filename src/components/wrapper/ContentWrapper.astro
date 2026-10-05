@@ -1,0 +1,339 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { slotContent } from "@/utils/slots.ts";
+
+type ContentWrapperVariant =
+  | "stack"
+  | "auto-width"
+  | "columns"
+  | "breakout"
+  | "contain"
+  | "sticky-content"
+  | "sticky-visual"
+  | "card";
+
+type Base = HTMLAttributes<"div"> & {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Content layout. */
+  variant?: ContentWrapperVariant;
+};
+
+type ColumnClasses = {
+  /** First-column classes. */
+  column1Class?: string;
+  /** Second-column classes. */
+  column2Class?: string;
+};
+
+type Props = Base &
+  (
+    | {
+        variant?: "stack";
+        reverse?: never;
+        /** Center each column's content. */
+        centered?: boolean;
+        mediaOpacity?: never;
+      }
+    | {
+        variant: "auto-width";
+        reverse?: never;
+        centered?: never;
+        mediaOpacity?: never;
+      }
+    | {
+        variant: "columns" | "breakout" | "contain";
+        /** Show the second column first. */
+        reverse?: boolean;
+        centered?: never;
+        mediaOpacity?: never;
+      }
+    | {
+        variant: "sticky-content" | "sticky-visual";
+        reverse?: never;
+        centered?: never;
+        mediaOpacity?: never;
+      }
+    | {
+        variant: "card";
+        reverse?: never;
+        centered?: never;
+        /**
+         * Card visual opacity. Defaults to `70`.
+         *
+         * @min 0
+         * @max 100
+         * @int
+         */
+        mediaOpacity?: number;
+      }
+  ) &
+  ColumnClasses;
+
+type AllProps = Base &
+  ColumnClasses & {
+    variant?: ContentWrapperVariant;
+    reverse?: boolean;
+    centered?: boolean;
+    mediaOpacity?: number;
+  };
+
+const {
+  render = true,
+  variant = "stack",
+  reverse = false,
+  centered = false,
+  mediaOpacity,
+  column1Class,
+  column2Class,
+  class: className,
+  ...rest
+} = Astro.props as AllProps;
+
+const validMediaOpacity =
+  mediaOpacity !== undefined &&
+  Number.isFinite(mediaOpacity) &&
+  mediaOpacity >= 0 &&
+  mediaOpacity <= 100;
+
+if (import.meta.env.DEV && mediaOpacity !== undefined) {
+  if (!validMediaOpacity) {
+    console.warn(
+      `[base] <ContentWrapper mediaOpacity={${mediaOpacity}}> must be between 0 and 100; the default is used instead.`,
+    );
+  } else if (variant !== "card") {
+    console.warn(
+      `[base] <ContentWrapper variant="${variant}"> ignores mediaOpacity; only the card variant has a visual to fade.`,
+    );
+  }
+}
+
+const media =
+  variant === "card" && validMediaOpacity && mediaOpacity !== 70
+    ? `--_media-opacity: ${mediaOpacity}`
+    : undefined;
+
+const variantClasses =
+  variant === "stack"
+    ? []
+    : variant === "card"
+      ? ["is-card", "u-theme-dark"]
+      : [`is-${variant}`];
+
+const column1 = await slotContent(Astro.slots);
+const column2 = await slotContent(Astro.slots, "column2");
+---
+
+{
+  render && (column1 || column2) && (
+    <div
+      class:list={[
+        "layout_wrap",
+        variantClasses,
+        reverse && "is-reversed",
+        centered && "is-centered",
+        className,
+      ]}
+      style={media}
+      {...rest}
+    >
+      {column1 && (
+        <div class:list={[column1Class]}>
+          <Fragment set:html={column1} />
+        </div>
+      )}
+      {column2 && (
+        <div class:list={[column2Class]}>
+          <Fragment set:html={column2} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .layout_wrap {
+      /* layout defaults */
+      --_visual-ratio: 3 / 2;
+      --_alignment: start;
+      --_column-count: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      column-gap: var(--_sizing---space--2);
+      row-gap: var(--_sizing---space--4);
+      align-items: stretch;
+      grid-template-columns: repeat(var(--_column-count), minmax(0, 1fr));
+
+      /* column defaults */
+      & > * {
+        display: flex;
+        flex-direction: column;
+        align-items: var(--_alignment, start);
+        text-align: var(--_alignment, start);
+        gap: var(--_sizing---space--1-5);
+        width: 100%;
+        max-width: 100%;
+      }
+      & > :first-child {
+        align-self: center;
+      }
+
+      /* visual ratio lock */
+      & > :last-child:not(:has(> :not(.image_wrap, .video_wrap, .overlay_wrap))) {
+        position: relative;
+        border-radius: var(--_sizing---radius--0-5);
+        aspect-ratio: var(--_visual-ratio);
+        & > :is(.image_wrap, .video_wrap, .overlay_wrap) {
+          border-radius: inherit;
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      /* variant overrides */
+      &.is-centered {
+        --_alignment: center;
+      }
+      &.is-auto-width {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: end;
+        row-gap: var(--_sizing---space--2-5);
+        & > * {
+          width: auto;
+          align-self: unset;
+        }
+        & > :last-child {
+          min-width: min(4rem, 100%);
+        }
+      }
+      &.is-columns {
+        display: grid;
+        column-gap: var(--_sizing---space--3);
+        @media (width >= 62rem) {
+          --_column-count: 2;
+          &.is-reversed {
+            & > :last-child {
+              order: -1;
+            }
+          }
+        }
+      }
+      &.is-sticky-content {
+        --_visual-ratio: 1 / 1;
+        display: grid;
+        @media (width >= 62rem) {
+          --_column-count: 2;
+          & > :first-child {
+            align-self: start;
+            position: sticky;
+            top: var(--_sizing---space--4);
+          }
+        }
+      }
+      &.is-sticky-visual {
+        --_visual-ratio: 1 / 1;
+        display: grid;
+        @media (width >= 62rem) {
+          --_column-count: 2;
+          & > :first-child {
+            align-self: start;
+          }
+          & > :last-child {
+            align-self: start;
+            position: sticky;
+            top: var(--_sizing---space--4);
+            max-height: calc(100svh - var(--_sizing---space--4) * 2);
+          }
+        }
+      }
+      &.is-breakout {
+        display: grid;
+        width: 100vw;
+        margin-inline: calc(50% - 50vw);
+        flex-shrink: 0;
+        column-gap: 0;
+        row-gap: 0;
+        & > :first-child {
+          margin-inline: auto;
+          width: 100cqw;
+          padding-block: var(--_sizing---space--5);
+        }
+        & > :last-child {
+          border-radius: 0;
+        }
+        @media (width >= 62rem) {
+          --_column-count: 2;
+          & > :first-child {
+            width: calc(100% - var(--_sizing---space--4) * 2);
+            max-width: calc(80rem / 2);
+          }
+          & > :last-child {
+            border-top-left-radius: var(--_sizing---radius--0-5);
+            border-bottom-left-radius: var(--_sizing---radius--0-5);
+          }
+          &.is-reversed {
+            & > :last-child {
+              order: -1;
+              border-top-left-radius: 0;
+              border-bottom-left-radius: 0;
+              border-top-right-radius: var(--_sizing---radius--0-5);
+              border-bottom-right-radius: var(--_sizing---radius--0-5);
+            }
+          }
+        }
+      }
+      &.is-contain {
+        display: grid;
+        column-gap: 0;
+        row-gap: 0;
+        background-color: var(--_theme---background-2);
+        border-radius: var(--_sizing---radius--1);
+        position: relative;
+        overflow: clip;
+        & > :first-child {
+          padding: var(--_sizing---space--2-5);
+        }
+        & > :last-child {
+          border-radius: 0;
+        }
+        @media (width >= 62rem) {
+          --_column-count: 2;
+          &.is-reversed {
+            & > :last-child {
+              order: -1;
+            }
+          }
+        }
+      }
+      &.is-card {
+        border-radius: var(--_sizing---radius--1);
+        position: relative;
+        overflow: clip;
+        min-height: 26rem;
+        justify-content: center;
+        & > :first-child {
+          padding-block: var(--_sizing---space--5);
+          padding-inline: var(--_sizing---space--2);
+          position: relative;
+          z-index: 1;
+          --_alignment: center;
+        }
+        & > :last-child {
+          position: absolute;
+          inset: 0;
+          border-radius: 0;
+          width: 100%;
+          height: 100%;
+          opacity: calc(var(--_media-opacity, 70) / 100);
+          pointer-events: none;
+        }
+      }
+    }
+  }
+</style>

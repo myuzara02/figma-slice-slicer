@@ -1,0 +1,42 @@
+---
+import Button from "@/components/Button.astro";
+
+interface Props {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Target ID, without `#`. */
+  target?: string;
+  /** Link text. */
+  label?: string;
+}
+
+const {
+  render = true,
+  target = "main",
+  label = "Skip to main content",
+} = Astro.props;
+---
+
+{
+  render && (
+    <Button element="link" href={`#${target}`} class="skip-link_wrap">
+      {label}
+    </Button>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .skip-link_wrap {
+      position: fixed;
+      top: var(--_sizing---space--0-75);
+      inset-inline-start: var(--_sizing---space--0-75);
+      z-index: 100;
+      translate: 0 calc(-100% - var(--_sizing---space--0-75) * 2);
+
+      &:focus {
+        translate: 0 0;
+      }
+    }
+  }
+</style>

@@ -1,0 +1,28 @@
+{
+  "name": "figma-slice-slicer",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro",
+    "postinstall": "playwright install chromium",
+    "mcp": "node .agents/skills/figma-slice/scripts/mcp.mjs",
+    "locate": "node .agents/skills/figma-slice/scripts/locate.mjs",
+    "slice": "node .agents/skills/figma-slice/scripts/slice.mjs --map figma/token-map.json --modes figma/modes",
+    "tokens": "node .agents/skills/figma-slice/scripts/tokens.mjs --map figma/token-map.json --modes figma/modes --static figma/static.json --relume .agents/skills/figma-slice/relume-tokens.css --out src/styles/tokens.css",
+    "visual-check": "node .agents/skills/figma-slice/scripts/visual-check.mjs",
+    "audit-props": "node .agents/skills/figma-slice/scripts/audit-props.mjs src/components"
+  },
+  "dependencies": {
+    "astro": "^7.3.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "playwright": "^1.63.0",
+    "typescript": "^6.0.3"
+  }
+}

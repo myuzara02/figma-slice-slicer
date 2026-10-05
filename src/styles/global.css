@@ -1,0 +1,8 @@
+/* Cascade order, lowest priority first */
+
+@layer base, patterns, components, utilities;
+
+@import "./reset.css" layer(base);
+@import "./tokens.css" layer(base);
+@import "./relume-patterns.css" layer(patterns);
+@import "./relume-utilities.css" layer(utilities);

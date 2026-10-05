@@ -1,0 +1,81 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { slotContent } from "@/utils/slots.ts";
+import { typeStyleClass, type TypeStyle } from "@/utils/type-style.ts";
+
+interface Props extends HTMLAttributes<"div"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Type style. */
+  variant?: TypeStyle;
+  /**
+   * Maximum line length in characters.
+   *
+   * @min 1
+   * @int
+   */
+  maxWidth?: number;
+}
+
+const {
+  render = true,
+  variant = "inherit",
+  maxWidth,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const content = await slotContent(Astro.slots);
+---
+
+{
+  render && content && (
+    <div
+      class:list={[
+        "rich-text_wrap",
+        "text-rich-text",
+        typeStyleClass(variant),
+        className,
+      ]}
+      style={maxWidth ? `max-width: ${maxWidth}ch;` : undefined}
+      {...rest}
+    >
+      <Fragment set:html={content} />
+    </div>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .rich-text_wrap {
+      & > :first-child,
+      & :is(blockquote, li) > :first-child:not(:is(ul, ol)) {
+        margin-top: 0;
+      }
+      & > :last-child,
+      & :is(blockquote, li) > :last-child {
+        margin-bottom: 0;
+      }
+
+      & ul {
+        list-style-type: disc;
+      }
+      & ul ul {
+        list-style-type: circle;
+      }
+      & ul ul ul {
+        list-style-type: square;
+      }
+      & ol {
+        list-style-type: decimal;
+      }
+      & li::marker {
+        color: color-mix(in lab, currentcolor 60%, transparent);
+      }
+
+      & blockquote {
+        border-left: 0.094rem solid var(--_theme---border);
+      }
+    }
+  }
+</style>

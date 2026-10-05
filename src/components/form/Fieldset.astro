@@ -1,0 +1,97 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { slotContent } from "@/utils/slots.ts";
+
+interface Props extends HTMLAttributes<"fieldset"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Field group label. */
+  legend?: string;
+  /** Field layout. */
+  variant?: "stack" | "columns" | "thirds" | "inline";
+  /** Legend style. */
+  legendStyle?: "heading" | "label" | "hidden";
+}
+
+const {
+  render = true,
+  legend,
+  variant = "stack",
+  legendStyle = "heading",
+  class: className,
+  ...rest
+} = Astro.props;
+
+const LEGEND_STYLES: Record<NonNullable<Props["legendStyle"]>, string> = {
+  heading: "is-heading heading-style-h5",
+  label: "form_main_label_text text-size-regular",
+  hidden: "form_main_label_text is-hidden",
+};
+
+const content = await slotContent(Astro.slots);
+---
+
+{
+  render && legend && content && (
+    <fieldset
+      class:list={[
+        "form_fieldset_wrap",
+        variant !== "stack" && `is-${variant}`,
+        className,
+      ]}
+      {...rest}
+    >
+      <legend
+        class:list={["form_fieldset_legend", LEGEND_STYLES[legendStyle]]}
+      >
+        {legend}
+      </legend>
+      <div class="form_fieldset_fields">
+        <Fragment set:html={content} />
+      </div>
+    </fieldset>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .form_fieldset_wrap {
+      width: 100%;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .form_fieldset_legend {
+      padding: 0;
+      margin-bottom: var(--_sizing---space--0-75);
+    }
+
+    .form_fieldset_legend.is-heading {
+      margin-bottom: var(--_sizing---space--1);
+    }
+
+    .form_fieldset_fields {
+      display: grid;
+      gap: var(--_sizing---space--2);
+
+      .form_fieldset_wrap.is-inline & {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--_sizing---space--1) var(--_sizing---space--2);
+        > * {
+          width: auto;
+        }
+      }
+
+      @media (width >= 48rem) {
+        .form_fieldset_wrap.is-columns & {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .form_fieldset_wrap.is-thirds & {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+    }
+  }
+</style>
