@@ -12,9 +12,10 @@ built on the Relume Styleguide, identical at desktop 1440, tablet 834 and mobile
 ## 1. Create a site
 
 ```bash
-npx degit myuzara02/figma-slice-slicer my-site
+git clone --depth 1 https://github.com/myuzara02/figma-slice-slicer.git my-site && rm -rf my-site/.git
 # or, as your own GitHub repo:
 # gh repo create my-site --private --template myuzara02/figma-slice-slicer --clone
+# (not degit: it turns the .claude/skills link into a path inside its cache)
 cd my-site
 npm install        # also downloads Chromium for the visual check
 npm run dev        # http://localhost:4321/style-guide/ shows the Relume base
