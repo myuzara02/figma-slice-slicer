@@ -16,7 +16,7 @@ Step by step: [TUTORIAL.md](TUTORIAL.md).
 ## Slice a page
 
 1. Open the Figma file in Figma desktop with the Dev Mode MCP server on.
-2. Put the Figma Variables exports in `figma/`: `token-map.json`, `modes/*.tokens.json`, `static.json`.
+2. Put the Figma Variables exports in `figma/`: `token-map.json`, `Responsive.json`, `Static.json`.
 3. Ask the agent: `/figma-slice <Figma link of the page>`.
 
 The skill (`.agents/skills/figma-slice/SKILL.md`) does the rest and closes with a report.

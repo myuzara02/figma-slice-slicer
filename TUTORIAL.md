@@ -39,19 +39,16 @@ The skill relies on a tidy Figma file. Make sure that:
 
 ## 3. Export the Variables into `figma/`
 
-Export the Variables from Figma (the `.tokens.json` format, carrying `com.figma.*` `$extensions`) and lay them out like this:
+Export each Variables collection with a variables-export plugin that writes one JSON per collection (with `modes` and `valuesByMode` per variable), and lay them out like this:
 
 ```text
 figma/
-  modes/
-    desktop.tokens.json     ← one file per mode of the responsive collection
-    tablet.tokens.json
-    mobile.tokens.json
-  static.json               ← the single-mode collection: colors, font families, weights
+  Responsive.json           ← the responsive collection: one mode per Breakpoint (desktop, tablet, mobile)
+  Static.json               ← the single-mode collection: colors, font families, weights
   token-map.json            ← Figma variable names → Relume Token names
 ```
 
-The mode name is read from the file's content, not its file name.
+The mode names are read from the file, not from its name. Figma's own export (one `*.tokens.json` per mode) also works if you point `--modes` at its folder.
 
 **`token-map.json`** maps Figma variable paths to Relume Token names with prefix rules. A minimal example:
 
@@ -99,7 +96,7 @@ The agent then works on its own:
 | Question | Your answer |
 |---|---|
 | Section names differ across the three frames (e.g. `Alt - 01` vs `header`) | Say which ones belong together, or rename them in Figma |
-| Export colors differ from Figma live (stale export) | Re-export, or accept the live colors |
+| Export colors differ from Figma live (stale export) | Re-export, or say which is right: the live colors or the export |
 
 Every decision is recorded in the **This project** section of `.agents/skills/figma-slice/SKILL.md`, so the next session does not ask again.
 
@@ -143,5 +140,5 @@ Repeat step 5 with another page's link. Existing components are reused, and MCP 
 | `ECONNREFUSED 127.0.0.1:3845` | Figma desktop is closed or the MCP server is off |
 | `UNMAPPED Figma Variables` | Add a rule or alias to `figma/token-map.json` |
 | `no Token Mode export named …` | A name in the Token Map's `modes` differs from the mode name in Figma |
-| `STOP: tokens.css not written` | Stale export colors: re-export or accept the live colors |
+| `STOP: tokens.css not written` | Stale export colors: re-export, or tell the agent whether live or the export is right |
 | Visual check `NOT CHECKED` | The Section's wrapper class is not `<section>_wrap`; the agent passes `--selector` |

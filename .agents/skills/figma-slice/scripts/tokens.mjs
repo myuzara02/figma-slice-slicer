@@ -3,15 +3,17 @@
 //
 // Library:
 //   createTokenMap({ rules, aliases }).resolve(figmaPath)  → Token name | null
-//   buildTokens({ tokenMap, modes, statics, live, relumeCss, liveColors? })
+//   buildTokens({ tokenMap, modes, statics, live, relumeCss, liveColors?, exportColors? })
 //     → { ok, stops, css, tokens, report: { same, differs, onlyHere, unmapped, stale, conflicts } }
 //     ok is false (css null) when export colors differ from live get_variable_defs or two Figma Variables
-//     give one Token different values: stop and ask the user (`stops` says why). liveColors (--live-colors)
-//     takes stale colors from live instead; colors are single-mode, so the live value is reliable.
+//     give one Token different values: stop and ask the user (`stops` says why). Once the user decided:
+//     liveColors (--live-colors) takes stale colors from live (colors are single-mode, so the live value is
+//     reliable); exportColors (--export-colors) keeps the export's. Both still list them in `stale`.
 //     Non-color live Variables missing from the exports are reported in `stale` without stopping.
+//   readTokenModes(collection.json | dir), flattenExport(json)  Variables exports, both formats (see Inputs).
 //   cssBlocks(css), effectiveVars(blocks, breakpoint, pins?), canon(value)  CSS custom-property reader.
-// CLI: node tokens.mjs --map <token-map.json> --modes <dir of *.tokens.json> --static <file.json>
-//        --relume <webflow.css> --out <tokens.css> [--report <report.json>] [--live-colors] <nodeId...>
+// CLI: node tokens.mjs --map <token-map.json> --modes <collection.json|dir of *.tokens.json> --static <file.json>
+//        --relume <webflow.css> --out <tokens.css> [--report <report.json>] [--live-colors|--export-colors] <nodeId...>
 //      nodeIds are queried with get_variable_defs (cached, env as in mcp.mjs) for the stale check and the
 //      letter-spacing of text styles. Exit 1 on stop, 2 on usage.
 //
@@ -59,8 +61,52 @@ const unlabel = (figmaPath) => figmaPath.replace(/\s*\[[^\]]*\]$/, '');
 
 // ── Inputs ──────────────────────────────────────────────────────────────────────────────────
 
-// Figma Variables export (DTCG JSON) → [{ path, type, value, scopes }].
+// Two export formats, one shape out: [{ path, type, value, scopes }] per Token Mode.
+//   DTCG (Figma's own export): one *.tokens.json per mode, `$value`, mode in $extensions["com.figma.modeName"].
+//   Collection (Variables-export plugin): one JSON per collection, every mode in `valuesByMode`.
+const isCollection = (json) => Array.isArray(json.variables) && typeof json.modes === 'object';
+const COLLECTION_TYPES = { FLOAT: 'number', COLOR: 'color', STRING: 'string', BOOLEAN: 'boolean' };
+
+function collectionModes(json) {
+  // Same order as the DTCG export: panel order (variableIds), grouped by path the way a nested tree walks.
+  const order = new Map((json.variableIds ?? []).map((id, i) => [id, i]));
+  const tree = new Map();
+  for (const v of [...json.variables].sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity))) {
+    let node = tree;
+    for (const segment of v.name.split('/').slice(0, -1)) {
+      if (!node.has(segment)) node.set(segment, new Map());
+      node = node.get(segment);
+    }
+    node.set(Symbol(v.name), v);
+  }
+  const variables = [];
+  const walk = (node) => {
+    for (const child of node.values()) child instanceof Map ? walk(child) : variables.push(child);
+  };
+  walk(tree);
+  return Object.fromEntries(
+    Object.entries(json.modes).map(([id, mode]) => [
+      mode,
+      variables.map((v) => {
+        const value = v.resolvedValuesByMode?.[id]?.resolvedValue ?? v.valuesByMode[id];
+        return {
+          path: v.name,
+          type: COLLECTION_TYPES[v.type] ?? v.type,
+          value: v.type === 'COLOR' ? { hex: `#${hex2(value.r)}${hex2(value.g)}${hex2(value.b)}`, alpha: value.a } : value,
+          scopes: v.scopes ?? [],
+        };
+      }),
+    ]),
+  );
+}
+
+// A single-mode export (the static Variables) → [{ path, type, value, scopes }].
 export function flattenExport(json) {
+  if (isCollection(json)) {
+    const modes = Object.values(collectionModes(json));
+    if (modes.length !== 1) throw new Error(`collection "${json.name}" has ${modes.length} modes; the static export has one`);
+    return modes[0];
+  }
   const out = [];
   const walk = (node, prefix) => {
     for (const [key, child] of Object.entries(node)) {
@@ -74,11 +120,16 @@ export function flattenExport(json) {
   return out;
 }
 
-// One export file per Token Mode, keyed by the Figma mode name.
-export function readTokenModes(dir) {
+// Token Modes keyed by Figma mode name: a collection file, or a directory of DTCG files (one per mode).
+export function readTokenModes(source) {
+  if (fs.statSync(source).isFile()) {
+    const json = JSON.parse(fs.readFileSync(source, 'utf8'));
+    if (!isCollection(json)) throw new Error(`${source}: not a Variables collection export (no "variables" and "modes")`);
+    return collectionModes(json);
+  }
   const modes = {};
-  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.tokens.json')).sort()) {
-    const json = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
+  for (const file of fs.readdirSync(source).filter((f) => f.endsWith('.tokens.json')).sort()) {
+    const json = JSON.parse(fs.readFileSync(path.join(source, file), 'utf8'));
     const name = json.$extensions?.['com.figma.modeName'];
     if (!name) throw new Error(`${file}: no $extensions["com.figma.modeName"]`);
     modes[name] = flattenExport(json);
@@ -186,7 +237,8 @@ const resolveRefs = (value, vars, depth = 0) =>
 
 // ── Build ───────────────────────────────────────────────────────────────────────────────────
 
-export function buildTokens({ tokenMap, modes, statics, live, relumeCss, liveColors = false }) {
+export function buildTokens({ tokenMap, modes, statics, live, relumeCss, liveColors = false, exportColors = false }) {
+  if (liveColors && exportColors) throw new Error('liveColors and exportColors exclude each other');
   const variables = createTokenMap(tokenMap.variables);
   const textStyles = createTokenMap(tokenMap.textStyles ?? {});
   const fontStacks = tokenMap.fontStacks ?? {};
@@ -267,7 +319,7 @@ export function buildTokens({ tokenMap, modes, statics, live, relumeCss, liveCol
   // Comparison with the Relume export.
   const relume = cssBlocks(relumeCss);
   const theirs = Object.fromEntries(bps.map((bp) => [bp, effectiveVars(relume, bp)]));
-  const report = { same: [], differs: [], onlyHere: [], unmapped, stale, conflicts, liveColors };
+  const report = { same: [], differs: [], onlyHere: [], unmapped, stale, conflicts, liveColors, exportColors };
   for (const t of tokens.values()) {
     if (!theirs.desktop.has(t.token)) {
       report.onlyHere.push({ token: t.token, figma: t.figma });
@@ -284,7 +336,7 @@ export function buildTokens({ tokenMap, modes, statics, live, relumeCss, liveCol
 
   const stops = [];
   if (conflicts.length) stops.push('conflicts: fix the Token Map or the design.');
-  if (stale.some((s) => s.color) && !liveColors) stops.push('stale colors: re-export the Variables, or confirm and rerun with --live-colors.');
+  if (stale.some((s) => s.color) && !liveColors && !exportColors) stops.push('stale colors: re-export the Variables, or confirm which is right and rerun with --live-colors or --export-colors.');
   const ok = stops.length === 0;
   return { ok, stops, css: ok ? renderCss([...tokens.values()]) : null, tokens: [...tokens.values()], report };
 }
@@ -340,7 +392,8 @@ function printReport({ ok, stops, tokens, report }, out) {
     }
   }
   if (r.stale.length) {
-    console.log(`\nSTALE EXPORT: live get_variable_defs differs from the export${r.liveColors ? ' (colors taken from live: --live-colors)' : ''}:`);
+    const kept = r.liveColors ? ' (colors taken from live: --live-colors)' : r.exportColors ? ' (export colors kept: --export-colors)' : '';
+    console.log(`\nSTALE EXPORT: live get_variable_defs differs from the export${kept}:`);
     for (const s of r.stale) console.log(`  ${s.figma}  export ${s.export ?? 'missing'}, live ${s.live}`);
     if (r.stale.some((s) => !s.color)) console.log('  Non-color Variables missing from the export are not in tokens.css: re-export the Token Modes.');
   }
@@ -351,7 +404,7 @@ function printReport({ ok, stops, tokens, report }, out) {
   }
 }
 
-const USAGE = 'usage: tokens.mjs --map <token-map.json> --modes <dir> --static <file.json> --relume <webflow.css> --out <tokens.css> [--report <file.json>] [--live-colors] <nodeId...>';
+const USAGE = 'usage: tokens.mjs --map <token-map.json> --modes <collection.json|dir> --static <file.json> --relume <webflow.css> --out <tokens.css> [--report <file.json>] [--live-colors|--export-colors] <nodeId...>';
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let opt, nodeIds;
@@ -366,13 +419,14 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
         out: { type: 'string' },
         report: { type: 'string' },
         'live-colors': { type: 'boolean', default: false },
+        'export-colors': { type: 'boolean', default: false },
       },
     }));
   } catch (e) {
     console.error(`${e.message}\n${USAGE}`);
     process.exit(2);
   }
-  if (!opt.map || !opt.modes || !opt.static || !opt.relume || !opt.out || !nodeIds.length) {
+  if (!opt.map || !opt.modes || !opt.static || !opt.relume || !opt.out || !nodeIds.length || (opt['live-colors'] && opt['export-colors'])) {
     console.error(USAGE);
     process.exit(2);
   }
@@ -390,6 +444,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     live,
     relumeCss: fs.readFileSync(opt.relume, 'utf8'),
     liveColors: opt['live-colors'],
+    exportColors: opt['export-colors'],
   });
   if (opt.report) fs.writeFileSync(opt.report, `${JSON.stringify(result.report, null, 2)}\n`);
   if (result.ok) fs.writeFileSync(opt.out, result.css);

@@ -12,8 +12,8 @@
     "postinstall": "playwright install chromium",
     "mcp": "node .agents/skills/figma-slice/scripts/mcp.mjs",
     "locate": "node .agents/skills/figma-slice/scripts/locate.mjs",
-    "slice": "node .agents/skills/figma-slice/scripts/slice.mjs --map figma/token-map.json --modes figma/modes",
-    "tokens": "node .agents/skills/figma-slice/scripts/tokens.mjs --map figma/token-map.json --modes figma/modes --static figma/static.json --relume .agents/skills/figma-slice/relume-tokens.css --out src/styles/tokens.css",
+    "slice": "node .agents/skills/figma-slice/scripts/slice.mjs --map figma/token-map.json --modes figma/Responsive.json",
+    "tokens": "node .agents/skills/figma-slice/scripts/tokens.mjs --map figma/token-map.json --modes figma/Responsive.json --static figma/Static.json --relume .agents/skills/figma-slice/relume-tokens.css --out src/styles/tokens.css",
     "visual-check": "node .agents/skills/figma-slice/scripts/visual-check.mjs",
     "audit-props": "node .agents/skills/figma-slice/scripts/audit-props.mjs src/components"
   },

@@ -80,9 +80,11 @@ project lacks. A template file the project changed (a Base Component fixed in
 place) is a conflict: merge it by hand; `--force` takes the skill's version and
 drops the project's change.
 
-Put the Figma inputs in `figma/`: `token-map.json`, `modes/` (one
-`*.tokens.json` export per Token Mode) and `static.json` (the single-mode
-export: colors, font families, weights). The npm scripts read them from there.
+Put the Figma inputs in `figma/`: `token-map.json`, plus the Variables-export
+plugin's collection files `Responsive.json` (the responsive collection, every
+Token Mode) and `Static.json` (the single-mode collection: colors, font
+families, weights). The npm scripts read them from there. Figma's own DTCG
+export (one `*.tokens.json` per mode) also works: point `--modes` at its folder.
 
 The agreed structure of a Target Project:
 
@@ -90,7 +92,7 @@ The agreed structure of a Target Project:
 .agents/skills/figma-slice/   this file (This project = the project's record), scripts/, relume-tokens.css
 .claude/skills/figma-slice    → ../../.agents/skills/figma-slice
 .figma-cache/                 MCP responses per tool+node, assets, screenshots, calls.log (commit it: re-runs are free)
-figma/                        token-map.json, modes/*.tokens.json, static.json
+figma/                        token-map.json, Responsive.json, Static.json
 figma-slice.json              manifest of the last slice run
 visual-check/<slug>/          Figma | Astro per Breakpoint (gitignored)
 astro.config.mjs              stripFigmaNodes() and the project's fonts
@@ -176,7 +178,8 @@ costs about 70–90 live calls once. `FORCE=1` refetches.
    Show the names per frame; the user says which belong together.
 2. **Export colors are stale** (`tokens` prints `STOP`): the export differs
    from Figma live, or two Variables give one Token different values. The user
-   re-exports, or accepts the live colors (`--live-colors`); record which.
+   re-exports, or says which is right: live (`--live-colors`) or the export
+   (`--export-colors`); record which.
 
 Everything else is decided, labelled as a guess where it is one, and reported.
 Questions for the design (inconsistent copy between frames, a Section wider
@@ -285,6 +288,6 @@ All in `scripts/`, plain Node, run in the Target Project through npm.
 | `mcp -- <tool> <node> [json]` | One MCP call through the cache (`get_screenshot` for a masked asset) |
 | `locate -- <node> [--pair …]` | Section Locator only: Sections per frame, mismatches, order |
 | `slice -- <node> [--pair …] [--only …] [--no-assets]` | Everything the build needs, manifest `figma-slice.json` |
-| `tokens -- [--live-colors] <node…>` | `tokens.css` from the Token Map and exports; stale check |
+| `tokens -- [--live-colors\|--export-colors] <node…>` | `tokens.css` from the Token Map and exports; stale check |
 | `visual-check -- <url> --manifest figma-slice.json` | Figma \| Astro per Section and Breakpoint, text and overflow checks |
 | `audit-props` | Base Component props read as one API |
