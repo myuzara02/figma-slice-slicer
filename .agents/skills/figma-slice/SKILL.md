@@ -51,8 +51,8 @@ in a new Target Project and keeps it on re-install: it belongs to the project.
 
 ## Install
 
-A new site starts from the starter, a GitHub template repo with this skill
-installed (private: the GitHub account needs access):
+A new site starts from the starter, a public GitHub template repo with this
+skill installed (`npx degit myuzara02/figma-slice-slicer <site>` works too):
 
 ```bash
 gh repo create <site> --private --template myuzara02/figma-slice-slicer --clone
