@@ -51,14 +51,25 @@ in a new Target Project and keeps it on re-install: it belongs to the project.
 
 ## Install
 
-From a checkout of the skill repo, into an Astro project (`npm create astro@latest -- --template minimal` for a new one):
+A new site starts from the starter, a GitHub template repo with this skill
+installed (private: the GitHub account needs access):
+
+```bash
+gh repo create <site> --private --template myuzara02/figma-slice-slicer --clone
+cd <site> && npm install          # postinstall fetches Chromium for the visual check
+```
+
+An existing Astro project installs from a checkout of the skill repo:
 
 ```bash
 node skill/scripts/install.mjs <target>           # stops on conflicts, writes nothing
-node skill/scripts/install.mjs <target> --force   # a fresh project: its stock astro.config.mjs and tsconfig.json are conflicts
+node skill/scripts/install.mjs <target> --force   # takes the skill's version of conflicting files
 cd <target>
 npm install -D playwright @astrojs/check typescript && npx playwright install chromium
 ```
+
+The starter is rebuilt from the skill repo with `npm run starter` (into
+`../figma-slice-slicer`), then committed and pushed there.
 
 The installer copies the template (Relume base CSS, the default `tokens.css`
 with Relume's values, Base Components, the Style Guide page), this skill and its
