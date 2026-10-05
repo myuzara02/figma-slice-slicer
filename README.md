@@ -11,7 +11,7 @@ cd my-site
 npm install
 ```
 
-Step by step (Bahasa Indonesia): [TUTORIAL.md](TUTORIAL.md).
+Step by step: [TUTORIAL.md](TUTORIAL.md).
 
 ## Slice a page
 

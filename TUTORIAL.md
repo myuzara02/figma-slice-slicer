@@ -1,59 +1,59 @@
-# Tutorial: dari Figma ke halaman Astro
+# Tutorial: from Figma to an Astro page
 
-Tutorial ini membawa Anda dari nol sampai satu halaman Figma menjadi halaman Astro yang identik di desktop (1440), tablet (834) dan mobile (393).
+This tutorial takes you from nothing to one Figma page built as an Astro page that matches the design on desktop (1440), tablet (834) and mobile (393).
 
-## Yang dibutuhkan
+## What you need
 
-- Node.js 22.12 atau lebih baru
-- Figma **desktop** (bukan browser), dengan akses Dev Mode
-- Agent yang membaca skill: omp atau Claude Code
-- Opsional: GitHub CLI (`gh`)
+- Node.js 22.12 or newer
+- Figma **desktop** (not the browser), with Dev Mode access
+- An agent that reads skills: omp or Claude Code
+- Optional: GitHub CLI (`gh`)
 
-## 1. Buat situs baru
+## 1. Create a site
 
-Pilih salah satu:
-
-```bash
-# A. Sebagai repo GitHub Anda sendiri
-gh repo create situs-saya --private --template myuzara02/figma-slice-slicer --clone
-
-# B. Tanpa GitHub
-npx degit myuzara02/figma-slice-slicer situs-saya
-```
-
-Lalu:
+Pick one:
 
 ```bash
-cd situs-saya
-npm install        # juga mengunduh Chromium untuk visual check
-npm run dev        # buka http://localhost:4321/style-guide/ untuk melihat base Relume
+# A. As your own GitHub repo
+gh repo create my-site --private --template myuzara02/figma-slice-slicer --clone
+
+# B. Without GitHub
+npx degit myuzara02/figma-slice-slicer my-site
 ```
 
-## 2. Siapkan desain di Figma
+Then:
 
-Skill mengandalkan file Figma yang rapi. Pastikan:
+```bash
+cd my-site
+npm install        # also downloads Chromium for the visual check
+npm run dev        # open http://localhost:4321/style-guide/ to see the Relume base
+```
 
-1. **Satu halaman = satu node berisi tiga frame**: desktop 1440, tablet 834, mobile 393.
-2. **Anak langsung tiap frame adalah Section** (hero, features, footer, …) dengan **nama yang sama** di ketiga frame. Kalau berbeda, skill akan bertanya.
-3. **Nilai memakai Figma Variables** (font size, spacing, radius, warna), dengan satu mode per Breakpoint untuk variable responsif.
+## 2. Prepare the design in Figma
 
-## 3. Export Variables ke folder `figma/`
+The skill relies on a tidy Figma file. Make sure that:
 
-Export Variables dari Figma (format `.tokens.json`, yang berisi `$extensions` `com.figma.*`) dan susun seperti ini:
+1. **One page = one node holding three frames**: desktop 1440, tablet 834, mobile 393.
+2. **The direct children of each frame are Sections** (hero, features, footer, …) with **the same name** in all three frames. If they differ, the skill asks.
+3. **Values use Figma Variables** (font size, spacing, radius, colors), with one mode per Breakpoint for the responsive variables.
+
+## 3. Export the Variables into `figma/`
+
+Export the Variables from Figma (the `.tokens.json` format, carrying `com.figma.*` `$extensions`) and lay them out like this:
 
 ```text
 figma/
   modes/
-    desktop.tokens.json     ← satu file per mode collection responsif
+    desktop.tokens.json     ← one file per mode of the responsive collection
     tablet.tokens.json
     mobile.tokens.json
-  static.json               ← collection satu mode: warna, font family, weight
-  token-map.json            ← pemetaan nama variable Figma → Token Relume
+  static.json               ← the single-mode collection: colors, font families, weights
+  token-map.json            ← Figma variable names → Relume Token names
 ```
 
-Nama mode dibaca dari isi file, bukan dari nama file.
+The mode name is read from the file's content, not its file name.
 
-**`token-map.json`** memetakan path variable Figma ke nama Token Relume lewat aturan prefix. Contoh minimal:
+**`token-map.json`** maps Figma variable paths to Relume Token names with prefix rules. A minimal example:
 
 ```json
 {
@@ -69,79 +69,79 @@ Nama mode dibaca dari isi file, bukan dari nama file.
 }
 ```
 
-`modes` berisi nama mode **persis seperti di Figma** (misalnya `"dekstop"` kalau di Figma tertulis begitu). Variable yang belum terpetakan akan dilaporkan oleh skill, jadi Token Map bisa dilengkapi sambil jalan.
+`modes` holds the mode names **exactly as in Figma** (e.g. `"dekstop"` if Figma spells it that way). The skill reports every variable the map does not cover yet, so the map can grow as you go.
 
-## 4. Nyalakan Figma MCP
+## 4. Turn on the Figma MCP server
 
-1. Buka file desain di Figma desktop.
-2. Masuk Dev Mode, lalu aktifkan **MCP server** (berjalan di `http://127.0.0.1:3845/mcp`).
-3. Biarkan Figma tetap terbuka selama skill bekerja.
+1. Open the design file in Figma desktop.
+2. Switch to Dev Mode and enable the **MCP server** (it runs at `http://127.0.0.1:3845/mcp`).
+3. Keep Figma open while the skill works.
 
-## 5. Slice halaman
+## 5. Slice a page
 
-1. Di Figma, klik kanan node halaman (yang berisi ketiga frame) → **Copy link to selection**.
-2. Buka agent di folder `situs-saya`, lalu ketik:
+1. In Figma, right-click the page node (the one holding the three frames) → **Copy link to selection**.
+2. Open the agent in `my-site` and type:
 
 ```text
-/figma-slice slice halaman ini: <link Figma>
+/figma-slice slice this page: <Figma link>
 ```
 
-Agent akan bekerja sendiri:
+The agent then works on its own:
 
-1. Membuat `src/styles/tokens.css` dari export di `figma/`.
-2. Mencari semua Section di ketiga frame dan mengunduh asset ke `src/assets/<section>/`.
-3. Membangun satu komponen per Section di `src/components/content/`, navbar dan footer di `src/layouts/Page.astro`, dan halamannya di `src/pages/`.
-4. Membandingkan hasil dengan Figma (gambar di `visual-check/`), mengecek teks dan scroll horizontal.
-5. Menutup dengan laporan.
+1. Generates `src/styles/tokens.css` from the exports in `figma/`.
+2. Finds every Section in the three frames and downloads the assets to `src/assets/<section>/`.
+3. Builds one component per Section in `src/components/content/`, the navbar and footer in `src/layouts/Page.astro`, and the page in `src/pages/`.
+4. Compares the result with Figma (images in `visual-check/`) and checks text and horizontal scroll.
+5. Closes with a report.
 
-### Agent hanya berhenti untuk dua hal
+### The agent stops for two things only
 
-| Pertanyaan | Jawaban Anda |
+| Question | Your answer |
 |---|---|
-| Nama Section tidak sama di ketiga frame (contoh `Alt - 01` vs `header`) | Sebutkan mana yang sepasang, atau rename di Figma |
-| Warna di export berbeda dari Figma live (export basi) | Export ulang, atau setujui memakai warna live |
+| Section names differ across the three frames (e.g. `Alt - 01` vs `header`) | Say which ones belong together, or rename them in Figma |
+| Export colors differ from Figma live (stale export) | Re-export, or accept the live colors |
 
-Semua keputusan dicatat di `.agents/skills/figma-slice/SKILL.md` bagian **This project**, jadi sesi berikutnya tidak bertanya ulang.
+Every decision is recorded in the **This project** section of `.agents/skills/figma-slice/SKILL.md`, so the next session does not ask again.
 
-## 6. Periksa hasil
+## 6. Check the result
 
 ```bash
 npm run dev
 ```
 
-- Buka halaman di 1440, 834, 393 dan lebih lebar (misalnya 1920).
-- Lihat `visual-check/<section>/{desktop,tablet,mobile}.png`: kiri Figma, kanan Astro.
-- Baca laporan agent:
+- Open the page at 1440, 834, 393 and wider (e.g. 1920).
+- Look at `visual-check/<section>/{desktop,tablet,mobile}.png`: Figma on the left, Astro on the right.
+- Read the agent's report:
 
-| Bagian | Isi |
+| Section | Contents |
 |---|---|
-| New variables | Token baru di Token Map / tokens.css |
-| New components | Komponen yang dibuat atau diperluas |
-| Guesses | Yang ditebak agent (warna tanpa peran, asset pengganti) |
-| Unbound values | Nilai di Figma yang tidak memakai variable |
-| Mode Pin | Bagian yang memakai mode Breakpoint lain |
-| Visual check | Hasil cek dan perbedaan yang masih terlihat |
-| MCP calls | Pemakaian kuota MCP |
-| Still open | Pertanyaan untuk desain atau Anda |
+| New variables | New Tokens in the Token Map / tokens.css |
+| New components | Components built or extended |
+| Guesses | What the agent guessed (colors without a role, substitute assets) |
+| Unbound values | Figma values that use no variable |
+| Mode Pin | Parts that use another Breakpoint's mode |
+| Visual check | Check results and differences still visible |
+| MCP calls | MCP quota used |
+| Still open | Questions for the design or for you |
 
-Minta agent memperbaiki yang belum cocok. Perbedaan yang asalnya dari desain (misalnya teks beda antar frame) dijawab sebagai keputusan, lalu agent mencatatnya.
+Ask the agent to fix what does not match yet. Differences that come from the design (e.g. copy that differs between frames) are answered as decisions, and the agent records them.
 
-## 7. Halaman berikutnya
+## 7. The next page
 
-Ulangi langkah 5 dengan link halaman lain. Komponen yang sudah ada dipakai ulang, dan hasil MCP yang sudah tersimpan di `.figma-cache/` tidak dipanggil lagi.
+Repeat step 5 with another page's link. Existing components are reused, and MCP responses already stored in `.figma-cache/` are not fetched again.
 
 ## Tips
 
-- **Commit `.figma-cache/`**: menjalankan ulang jadi gratis. Kuota desktop MCP terbatas (sekitar 200 panggilan per hari; satu homepage 13 Section ≈ 70–90 panggilan pertama kali).
-- **Build**: `npm run build` menghasilkan `dist/` tanpa atribut debug `data-figma-node`.
-- **Kalau ada yang salah**: kirim pesan error ke agent; ia akan membaca skill dan memperbaikinya.
+- **Commit `.figma-cache/`**: re-runs become free. The desktop MCP quota is limited (about 200 calls a day; a 13-Section homepage takes ≈ 70–90 calls the first time).
+- **Build**: `npm run build` produces `dist/` without the `data-figma-node` debug attributes.
+- **When something breaks**: send the error to the agent; it reads the skill and fixes it.
 
-## Masalah umum
+## Common problems
 
-| Gejala | Penyebab / solusi |
+| Symptom | Cause / fix |
 |---|---|
-| `ECONNREFUSED 127.0.0.1:3845` | Figma desktop tertutup atau MCP server belum aktif |
-| `UNMAPPED Figma Variables` | Tambahkan aturan atau alias di `figma/token-map.json` |
-| `no Token Mode export named …` | Nama di `modes` pada Token Map tidak sama dengan nama mode di Figma |
-| `STOP: tokens.css not written` | Export warna basi: export ulang atau setujui warna live |
-| Visual check `NOT CHECKED` | Class pembungkus Section tidak bernama `<section>_wrap`; agent memakai `--selector` |
+| `ECONNREFUSED 127.0.0.1:3845` | Figma desktop is closed or the MCP server is off |
+| `UNMAPPED Figma Variables` | Add a rule or alias to `figma/token-map.json` |
+| `no Token Mode export named …` | A name in the Token Map's `modes` differs from the mode name in Figma |
+| `STOP: tokens.css not written` | Stale export colors: re-export or accept the live colors |
+| Visual check `NOT CHECKED` | The Section's wrapper class is not `<section>_wrap`; the agent passes `--selector` |
