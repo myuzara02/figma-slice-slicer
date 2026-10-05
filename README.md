@@ -11,8 +11,6 @@ cd my-site
 npm install
 ```
 
-Step by step: [TUTORIAL.md](TUTORIAL.md).
-
 ## Slice a page
 
 1. Open the Figma file in Figma desktop with the Dev Mode MCP server on.
