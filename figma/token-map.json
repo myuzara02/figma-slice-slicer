@@ -1,0 +1,41 @@
+{
+  "modes": { "desktop": "dekstop", "tablet": "tablet", "mobile": "mobile" },
+  "variables": {
+    "rules": [
+      { "prefix": "font-size/heading/", "token": "--_typography---font-size--" },
+      { "prefix": "font-size/body/", "token": "--_typography---font-size--text-", "words": { "Lg": "large", "Md": "main", "Sm": "small", "Xs": "tiny" } },
+      { "prefix": "font-size/overline/", "token": "--_typography---font-size--text-overline-", "words": { "Md": "medium", "Sm": "small" } },
+      { "prefix": "line-height/heading/", "token": "--_typography---line-height--" },
+      { "prefix": "line-height/body/", "token": "--_typography---line-height--text-", "words": { "Lg": "large", "Md": "main", "Sm": "small", "Xs": "tiny" } },
+      { "prefix": "line-height/overline/", "token": "--_typography---line-height--text-overline-", "words": { "Md": "medium", "Sm": "small" } },
+      { "prefix": "padding/", "token": "--_sizing---space--" },
+      { "prefix": "spacing/", "token": "--_sizing---space--" },
+      { "prefix": "corner-radius/", "token": "--_sizing---radius--" },
+      { "prefix": "icon-size/", "token": "--_sizing---icon--" },
+      { "prefix": "color/", "token": "--_primitives---colors--" },
+      { "prefix": "color/secondary/", "token": "--_primitives---colors--" },
+      { "prefix": "color/accent/", "token": "--_primitives---colors--" },
+      { "prefix": "font/weight/", "token": "--_typography---font--primary-", "words": { "Semi Bold": "semibold" } },
+      { "prefix": "font/family/", "token": "--_typography---font--secondary-family", "rest": "drop" }
+    ],
+    "aliases": {
+      "font/family/heading": "--_typography---font--primary-family"
+    }
+  },
+  "textStyles": {
+    "rules": [
+      { "prefix": "Heading/", "token": "--_typography---letter-spacing--" },
+      { "prefix": "Body/Large/", "token": "--_typography---letter-spacing--text-large", "rest": "drop" },
+      { "prefix": "Body/Regular/", "token": "--_typography---letter-spacing--text-main", "rest": "drop" },
+      { "prefix": "Body/Small/", "token": "--_typography---letter-spacing--text-small", "rest": "drop" },
+      { "prefix": "Button/", "token": "--_typography---letter-spacing--button", "rest": "drop" },
+      { "prefix": "Overline/", "token": "--_typography---letter-spacing--overline", "rest": "drop" },
+      { "prefix": "Tag/", "token": "--_typography---letter-spacing--tag", "rest": "drop" }
+    ],
+    "aliases": {}
+  },
+  "fontStacks": {
+    "Stack Sans Headline": "\"Stack Sans Headline Variable\", \"Stack Sans Headline\", sans-serif",
+    "Helvetica Neue": "\"Helvetica Neue\", Helvetica, Arial, sans-serif"
+  }
+}

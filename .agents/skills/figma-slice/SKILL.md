@@ -72,19 +72,27 @@ The starter is rebuilt from the skill repo with `npm run starter` (into
 `../figma-slice-slicer`), then committed and pushed there.
 
 The installer copies the template (Relume base CSS, the default `tokens.css`
-with Relume's values, Base Components, the Style Guide page), this skill and its
-scripts, and adds the npm scripts below. `tokens.css` and `astro.config.mjs` are
-seeds: written once, then the project's own. Re-installing updates the skill
+with Relume's values, Base Components, the Style Guide page, a default
+`figma/token-map.json`), this skill and its scripts, and adds the npm scripts
+below. `tokens.css`, `figma/token-map.json` and `astro.config.mjs` are seeds:
+written once, then the project's own. Re-installing updates the skill
 (this file, keeping **This project**; the scripts) and adds template files the
 project lacks. A template file the project changed (a Base Component fixed in
 place) is a conflict: merge it by hand; `--force` takes the skill's version and
 drops the project's change.
 
-Put the Figma inputs in `figma/`: `token-map.json`, plus the Variables-export
-plugin's collection files `Responsive.json` (the responsive collection, every
-Token Mode) and `Static.json` (the single-mode collection: colors, font
-families, weights). The npm scripts read them from there. Figma's own DTCG
-export (one `*.tokens.json` per mode) also works: point `--modes` at its folder.
+Put the Variables-export plugin's collection files in `figma/`:
+`Responsive.json` (the responsive collection, every Token Mode) and
+`Static.json` (the single-mode collection: colors, font families, weights).
+The npm scripts read them from there. Figma's own DTCG export (one
+`*.tokens.json` per mode) also works: point `--modes` at its folder.
+
+The default Token Map fits Figma files named like the Superpresence template
+(`font-size/heading/h1`, `padding/1_5rem`, `color/primary/60`, modes `dekstop`,
+`tablet`, `mobile`). When `tokens` reports `UNMAPPED` Variables or a different
+mode name, extend `figma/token-map.json` yourself (rules by prefix, longest
+wins; aliases by exact path) and re-run; a font it does not list gets
+`"<font>", sans-serif` and is reported.
 
 The agreed structure of a Target Project:
 

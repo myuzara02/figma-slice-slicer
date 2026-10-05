@@ -162,10 +162,7 @@ function cssValue(variable, fontStacks) {
   const { path: p, type, value, scopes } = variable;
   if (type === 'color') return value.hex.toLowerCase() + (value.alpha < 1 ? hex2(value.alpha) : '');
   if (type === 'number' && scopes.length && scopes.every((s) => LENGTH_SCOPES.has(s))) return `${round(value / 16)}rem`;
-  if (scopes.includes('FONT_FAMILY')) {
-    if (!fontStacks[value]) throw new Error(`${p}: no fontStacks entry for "${value}" in the Token Map`);
-    return fontStacks[value];
-  }
+  if (scopes.includes('FONT_FAMILY')) return fontStacks[value];
   if (scopes.includes('FONT_STYLE')) {
     const weight = WEIGHTS[value.toLowerCase().replace(/[\s-]+/g, '')];
     if (!weight) throw new Error(`${p}: unknown font style "${value}"`);
@@ -241,7 +238,14 @@ export function buildTokens({ tokenMap, modes, statics, live, relumeCss, liveCol
   if (liveColors && exportColors) throw new Error('liveColors and exportColors exclude each other');
   const variables = createTokenMap(tokenMap.variables);
   const textStyles = createTokenMap(tokenMap.textStyles ?? {});
-  const fontStacks = tokenMap.fontStacks ?? {};
+  // A font the Token Map does not list gets a plain stack, reported so the project can add a better one.
+  const fontStacks = { ...tokenMap.fontStacks };
+  const fontFallbacks = [];
+  for (const v of [...statics, ...Object.values(modes).flat()]) {
+    if (!v.scopes?.includes('FONT_FAMILY') || fontStacks[v.value]) continue;
+    fontStacks[v.value] = `"${v.value}", sans-serif`;
+    fontFallbacks.push(v.value);
+  }
   const bps = BREAKPOINTS.map((b) => b.breakpoint);
 
   // token → { token, figma: [path], values: { desktop, tablet, mobile }, sources: [{ figma, values }] }
@@ -319,7 +323,7 @@ export function buildTokens({ tokenMap, modes, statics, live, relumeCss, liveCol
   // Comparison with the Relume export.
   const relume = cssBlocks(relumeCss);
   const theirs = Object.fromEntries(bps.map((bp) => [bp, effectiveVars(relume, bp)]));
-  const report = { same: [], differs: [], onlyHere: [], unmapped, stale, conflicts, liveColors, exportColors };
+  const report = { same: [], differs: [], onlyHere: [], unmapped, stale, conflicts, fontFallbacks, liveColors, exportColors };
   for (const t of tokens.values()) {
     if (!theirs.desktop.has(t.token)) {
       report.onlyHere.push({ token: t.token, figma: t.figma });
@@ -383,6 +387,10 @@ function printReport({ ok, stops, tokens, report }, out) {
   if (r.unmapped.length) {
     console.log('\nUNMAPPED Figma Variables (add a rule or alias to the Token Map):');
     for (const u of r.unmapped) console.log(`  ${u.figma}  (${u.source})`);
+  }
+  if (r.fontFallbacks.length) {
+    console.log('\nFONT not in the Token Map\'s fontStacks (plain stack used; add fallbacks there if wanted):');
+    for (const f of r.fontFallbacks) console.log(`  "${f}", sans-serif`);
   }
   if (r.conflicts.length) {
     console.log('\nCONFLICT: Figma Variables mapped to one Token have different values:');

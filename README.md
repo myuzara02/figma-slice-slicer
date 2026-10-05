@@ -14,7 +14,7 @@ npm install
 ## Slice a page
 
 1. Open the Figma file in Figma desktop with the Dev Mode MCP server on.
-2. Put the Figma Variables exports in `figma/`: `token-map.json`, `Responsive.json`, `Static.json`.
+2. Put the Figma Variables exports in `figma/`: `Responsive.json` and `Static.json` (`figma/token-map.json` is ready).
 3. Ask the agent: `/figma-slice <Figma link of the page>`.
 
 The skill (`.agents/skills/figma-slice/SKILL.md`) does the rest and closes with a report.
